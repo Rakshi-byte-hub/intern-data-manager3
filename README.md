@@ -1,5 +1,17 @@
 ### Final Submission: Customer & Lead Manager
 
+### 1. Customer Form Empty
+![Filled Form](<./Form1.jpeg>)
+
+### 2. Customer Form with Data
+![Filled Form](<./Filled form.jpeg>)
+
+### 3. Vercel Deployment Overview
+![Deployment Overview](./Deployment1.jpeg)
+
+### 4. Live Deployment & Domain
+![Live Deployment](./Deployment2.jpeg)
+
 1. GitHub Repository Link:
 https://github.com/Rakshi-byte-hub/intern-data-manager3
 
