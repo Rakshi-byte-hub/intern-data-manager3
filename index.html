@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer & Lead Manager</title>
+  <!--Just linking external css stylesheet below-->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+     <h1>Customer & Lead Manager</h1>
+    <!-- Dashboard Metric Cards -->
+<section class="dashboard-grid">
+  <div class="stat-card">
+    <span class="stat-title">Total Leads</span>
+    <span class="stat-value" id="stat-total">0</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-title">New</span>
+    <span class="stat-value" id="stat-new">0</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-title">Contacted</span>
+    <span class="stat-value" id="stat-contacted">0</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-title">Interested</span>
+    <span class="stat-value" id="stat-interested">0</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-title">Closed</span>
+    <span class="stat-value" id="stat-closed">0</span>
+  </div>
+</section>
+    
+  </header>
+
+  <main>
+    <!-- Customer Input Form -->
+    <section>
+      <h2>Add Customer Details</h2>
+      <form id="customer-form">
+        <!-- Hidden input to track edit index -->
+        <input type="hidden" id="edit-index" value="-1">
+        
+        <div>
+          <label for="name">Customer Name:</label>
+          <input type="text" id="name" name="name" required placeholder="Enter customer name">
+        </div>
+
+        <div>
+          <label for="email">Email:</label>
+          <input type="email" id="email" name="email" required placeholder="name@example.com">
+        </div>
+
+        <div>
+          <label for="phone">Phone Number:</label>
+          <input type="tel" id="phone" name="phone" required placeholder="e.g. +91 9876543210">
+        </div>
+
+        <div>
+          <label for="company">Company Name:</label>
+          <input type="text" id="company" name="company" placeholder="Enter company name">
+        </div>
+
+        <div>
+          <label for="status">Status:</label>
+          <select id="status" name="status">
+            <option value="New">New</option>
+            <option value="Contacted">Contacted</option>
+            <option value="Interested">Interested</option>
+            <option value="Closed">Closed</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="notes">Notes:</label>
+          <textarea id="notes" name="notes" rows="4" cols="30" placeholder="Add any relevant notes or context..."></textarea>
+        </div>
+
+        <button type="submit">Add Customer</button>
+      </form>
+    </section>
+
+    <hr>
+     <!-- Search & Filter Controls -->
+    <section>
+      <h2>Search & Filter</h2>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 200px;">
+          <label for="search-input">Search Customer:</label>
+          <input type="text" id="search-input" placeholder="Search by name...">
+        </div>
+        <div style="width: 200px;">
+          <label for="filter-status">Filter by Status:</label>
+          <select id="filter-status">
+            <option value="All">All</option>
+            <option value="New">New</option>
+            <option value="Contacted">Contacted</option>
+            <option value="Interested">Interested</option>
+            <option value="Closed">Closed</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Records Table -->
+    <section>
+      <h2>Customer Records</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Company</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="customer-table-body">
+          <!-- Rendered dynamically -->
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
