@@ -1,19 +1,52 @@
-```javascript
 // ============================================================
 // LEAD MANAGEMENT DASHBOARD
-// Enhanced version with Analytics, Priority, Follow-ups,
-// Activity Tracking, CSV Export and Dark Mode
 // ============================================================
 
 
 // ============================================================
-// 1. STATE INITIALIZATION
+// 1. SAFE STORAGE
 // ============================================================
 
-let customers = JSON.parse(localStorage.getItem("customers")) || [];
+function loadCustomers() {
+  try {
+    const saved = localStorage.getItem("customers");
 
-let activities =
-  JSON.parse(localStorage.getItem("activities")) || [];
+    if (!saved) {
+      return [];
+    }
+
+    const parsed = JSON.parse(saved);
+
+    return Array.isArray(parsed) ? parsed : [];
+
+  } catch (error) {
+    console.error("Could not load customers:", error);
+    return [];
+  }
+}
+
+
+function loadActivities() {
+  try {
+    const saved = localStorage.getItem("activities");
+
+    if (!saved) {
+      return [];
+    }
+
+    const parsed = JSON.parse(saved);
+
+    return Array.isArray(parsed) ? parsed : [];
+
+  } catch (error) {
+    console.error("Could not load activities:", error);
+    return [];
+  }
+}
+
+
+let customers = loadCustomers();
+let activities = loadActivities();
 
 let statusChart = null;
 let companyChart = null;
@@ -24,7 +57,6 @@ let leadTrendChart = null;
 // 2. DOM REFERENCES
 // ============================================================
 
-// Dashboard cards
 const statTotal = document.getElementById("stat-total");
 const statNew = document.getElementById("stat-new");
 const statContacted = document.getElementById("stat-contacted");
@@ -32,75 +64,66 @@ const statInterested = document.getElementById("stat-interested");
 const statClosed = document.getElementById("stat-closed");
 const statConversion = document.getElementById("stat-conversion");
 
-// Form
 const customerForm = document.getElementById("customer-form");
 const editIndexInput = document.getElementById("edit-index");
-
 const submitBtn = document.getElementById("submit-btn");
+const cancelBtn = document.getElementById("cancel-edit");
 
-const cancelBtn =
-  document.getElementById("cancel-edit");
+const nameInput = document.getElementById("name");
+const emailInput = document.getElementById("email");
+const phoneInput = document.getElementById("phone");
+const companyInput = document.getElementById("company");
+const statusInput = document.getElementById("status");
+const priorityInput = document.getElementById("priority");
+const followUpDateInput = document.getElementById("followUpDate");
+const notesInput = document.getElementById("notes");
 
-const nameInput =
-  document.getElementById("name");
+const tableBody = document.getElementById("customer-table-body");
+const searchInput = document.getElementById("search-input");
+const filterStatus = document.getElementById("filter-status");
+const filterPriority = document.getElementById("filter-priority");
 
-const emailInput =
-  document.getElementById("email");
-
-const phoneInput =
-  document.getElementById("phone");
-
-const companyInput =
-  document.getElementById("company");
-
-const statusInput =
-  document.getElementById("status");
-
-const priorityInput =
-  document.getElementById("priority");
-
-const followUpDateInput =
-  document.getElementById("followUpDate");
-
-const notesInput =
-  document.getElementById("notes");
-
-
-// Search and filters
-const tableBody =
-  document.getElementById("customer-table-body");
-
-const searchInput =
-  document.getElementById("search-input");
-
-const filterStatus =
-  document.getElementById("filter-status");
-
-const filterPriority =
-  document.getElementById("filter-priority");
-
-
-// Other sections
-const followUpList =
-  document.getElementById("followUpList");
-
-const activityList =
-  document.getElementById("activityList");
-
-const exportBtn =
-  document.getElementById("export-btn");
-
-const themeToggle =
-  document.getElementById("theme-toggle");
+const followUpList = document.getElementById("followUpList");
+const activityList = document.getElementById("activityList");
+const exportBtn = document.getElementById("export-btn");
+const themeToggle = document.getElementById("theme-toggle");
 
 
 // ============================================================
-// 3. HELPER FUNCTIONS
+// 3. STORAGE FUNCTIONS
 // ============================================================
 
-// Escape user-entered text before placing it inside innerHTML.
-// This prevents HTML entered into a customer field from
-// becoming actual HTML on the page.
+function saveToStorage() {
+  try {
+    localStorage.setItem(
+      "customers",
+      JSON.stringify(customers)
+    );
+
+    console.log("Customers saved:", customers);
+
+  } catch (error) {
+    console.error("Could not save customers:", error);
+    alert("Unable to save the lead data in this browser.");
+  }
+}
+
+
+function saveActivities() {
+  try {
+    localStorage.setItem(
+      "activities",
+      JSON.stringify(activities)
+    );
+  } catch (error) {
+    console.error("Could not save activities:", error);
+  }
+}
+
+
+// ============================================================
+// 4. SECURITY HELPER
+// ============================================================
 
 function escapeHTML(value) {
 
@@ -118,44 +141,16 @@ function escapeHTML(value) {
 
 
 // ============================================================
-// 4. STORAGE
-// ============================================================
-
-function saveToStorage() {
-
-  localStorage.setItem(
-    "customers",
-    JSON.stringify(customers)
-  );
-}
-
-
-function saveActivities() {
-
-  localStorage.setItem(
-    "activities",
-    JSON.stringify(activities)
-  );
-}
-
-
-// ============================================================
-// 5. ACTIVITY TRACKING
+// 5. ACTIVITY
 // ============================================================
 
 function addActivity(message) {
 
-  const activity = {
-
+  activities.unshift({
     message: message,
-
     time: new Date().toLocaleString()
+  });
 
-  };
-
-  activities.unshift(activity);
-
-  // Keep only the latest 10 activities
   activities = activities.slice(0, 10);
 
   saveActivities();
@@ -183,29 +178,17 @@ function updateActivity() {
     return;
   }
 
-
   activities.forEach(activity => {
 
-    const item =
-      document.createElement("div");
+    const item = document.createElement("div");
 
-    item.className =
-      "activity-item";
+    item.className = "activity-item";
 
     item.innerHTML = `
-
       <div class="activity-content">
-
-        <strong>
-          ${escapeHTML(activity.message)}
-        </strong>
-
-        <small>
-          ${escapeHTML(activity.time)}
-        </small>
-
+        <strong>${escapeHTML(activity.message)}</strong>
+        <span>${escapeHTML(activity.time)}</span>
       </div>
-
     `;
 
     activityList.appendChild(item);
@@ -215,65 +198,51 @@ function updateActivity() {
 
 
 // ============================================================
-// 6. DASHBOARD UPDATE
+// 6. DASHBOARD
 // ============================================================
 
 function updateDashboard() {
 
-  if (!statTotal) {
-    return;
+  const total = customers.length;
+
+  const newLeads = customers.filter(
+    customer => customer.status === "New"
+  ).length;
+
+  const contacted = customers.filter(
+    customer => customer.status === "Contacted"
+  ).length;
+
+  const interested = customers.filter(
+    customer => customer.status === "Interested"
+  ).length;
+
+  const closed = customers.filter(
+    customer => customer.status === "Closed"
+  ).length;
+
+
+  if (statTotal) {
+    statTotal.textContent = total;
+  }
+
+  if (statNew) {
+    statNew.textContent = newLeads;
+  }
+
+  if (statContacted) {
+    statContacted.textContent = contacted;
+  }
+
+  if (statInterested) {
+    statInterested.textContent = interested;
+  }
+
+  if (statClosed) {
+    statClosed.textContent = closed;
   }
 
 
-  const total =
-    customers.length;
-
-
-  const newLeads =
-    customers.filter(
-      c => c.status === "New"
-    ).length;
-
-
-  const contacted =
-    customers.filter(
-      c => c.status === "Contacted"
-    ).length;
-
-
-  const interested =
-    customers.filter(
-      c => c.status === "Interested"
-    ).length;
-
-
-  const closed =
-    customers.filter(
-      c => c.status === "Closed"
-    ).length;
-
-
-  statTotal.textContent =
-    total;
-
-
-  statNew.textContent =
-    newLeads;
-
-
-  statContacted.textContent =
-    contacted;
-
-
-  statInterested.textContent =
-    interested;
-
-
-  statClosed.textContent =
-    closed;
-
-
-  // Conversion rate
   const conversionRate =
     total === 0
       ? 0
@@ -281,18 +250,13 @@ function updateDashboard() {
 
 
   if (statConversion) {
-
     statConversion.textContent =
       `${conversionRate}%`;
-
   }
 
 
   updateCharts();
-
   updateFollowUps();
-
-  updateActivity();
 }
 
 
@@ -305,21 +269,21 @@ function updateStatusChart() {
   const canvas =
     document.getElementById("statusChart");
 
-  if (!canvas) {
+  if (!canvas || typeof Chart === "undefined") {
     return;
   }
 
 
-  const statusCounts = {
+  if (statusChart) {
+    statusChart.destroy();
+  }
 
+
+  const counts = {
     New: 0,
-
     Contacted: 0,
-
     Interested: 0,
-
     Closed: 0
-
   };
 
 
@@ -327,23 +291,14 @@ function updateStatusChart() {
 
     if (
       Object.prototype.hasOwnProperty.call(
-        statusCounts,
+        counts,
         customer.status
       )
     ) {
-
-      statusCounts[customer.status]++;
-
+      counts[customer.status]++;
     }
 
   });
-
-
-  if (statusChart) {
-
-    statusChart.destroy();
-
-  }
 
 
   statusChart = new Chart(canvas, {
@@ -351,48 +306,33 @@ function updateStatusChart() {
     type: "doughnut",
 
     data: {
-
-      labels: Object.keys(statusCounts),
+      labels: Object.keys(counts),
 
       datasets: [
-
         {
-
           label: "Leads",
-
-          data: Object.values(statusCounts)
-
+          data: Object.values(counts)
         }
-
       ]
-
     },
 
     options: {
-
       responsive: true,
-
       maintainAspectRatio: false,
 
       plugins: {
-
         legend: {
-
           position: "bottom"
-
         }
-
       }
-
     }
 
   });
-
 }
 
 
 // ============================================================
-// 8. COMPANY BAR CHART
+// 8. COMPANY CHART
 // ============================================================
 
 function updateCompanyChart() {
@@ -400,8 +340,13 @@ function updateCompanyChart() {
   const canvas =
     document.getElementById("companyChart");
 
-  if (!canvas) {
+  if (!canvas || typeof Chart === "undefined") {
     return;
+  }
+
+
+  if (companyChart) {
+    companyChart.destroy();
   }
 
 
@@ -411,27 +356,13 @@ function updateCompanyChart() {
   customers.forEach(customer => {
 
     const company =
-      customer.company?.trim() ||
+      (customer.company || "Unknown").trim() ||
       "Unknown";
 
-
-    if (!companyCounts[company]) {
-
-      companyCounts[company] = 0;
-
-    }
-
-
-    companyCounts[company]++;
+    companyCounts[company] =
+      (companyCounts[company] || 0) + 1;
 
   });
-
-
-  if (companyChart) {
-
-    companyChart.destroy();
-
-  }
 
 
   companyChart = new Chart(canvas, {
@@ -439,59 +370,39 @@ function updateCompanyChart() {
     type: "bar",
 
     data: {
-
       labels: Object.keys(companyCounts),
 
       datasets: [
-
         {
-
           label: "Number of Leads",
-
           data: Object.values(companyCounts)
-
         }
-
       ]
-
     },
 
     options: {
 
       responsive: true,
-
       maintainAspectRatio: false,
 
       scales: {
-
         y: {
-
           beginAtZero: true,
-
           ticks: {
-
             stepSize: 1
-
           }
-
         }
-
       },
 
       plugins: {
-
         legend: {
-
           display: false
-
         }
-
       }
 
     }
 
   });
-
 }
 
 
@@ -504,64 +415,35 @@ function updateLeadTrendChart() {
   const canvas =
     document.getElementById("leadTrendChart");
 
-  if (!canvas) {
+  if (!canvas || typeof Chart === "undefined") {
     return;
   }
 
 
-  /*
-    Older leads may not have createdAt because they were
-    created before this enhanced version.
-
-    Therefore, we only use leads that have a createdAt date
-    for the trend chart.
-  */
-
-  const datedCustomers =
-    customers
-      .filter(customer => customer.createdAt)
-      .sort(
-        (a, b) =>
-          new Date(a.createdAt) -
-          new Date(b.createdAt)
-      );
+  if (leadTrendChart) {
+    leadTrendChart.destroy();
+  }
 
 
   const dateCounts = {};
 
 
-  datedCustomers.forEach(customer => {
+  customers.forEach(customer => {
+
+    if (!customer.createdAt) {
+      return;
+    }
+
 
     const date =
       new Date(customer.createdAt)
         .toLocaleDateString();
 
 
-    if (!dateCounts[date]) {
-
-      dateCounts[date] = 0;
-
-    }
-
-
-    dateCounts[date]++;
+    dateCounts[date] =
+      (dateCounts[date] || 0) + 1;
 
   });
-
-
-  const labels =
-    Object.keys(dateCounts);
-
-
-  const values =
-    Object.values(dateCounts);
-
-
-  if (leadTrendChart) {
-
-    leadTrendChart.destroy();
-
-  }
 
 
   leadTrendChart = new Chart(canvas, {
@@ -570,22 +452,15 @@ function updateLeadTrendChart() {
 
     data: {
 
-      labels: labels,
+      labels: Object.keys(dateCounts),
 
       datasets: [
-
         {
-
           label: "Leads Added",
-
-          data: values,
-
+          data: Object.values(dateCounts),
           tension: 0.3,
-
           fill: false
-
         }
-
       ]
 
     },
@@ -593,19 +468,15 @@ function updateLeadTrendChart() {
     options: {
 
       responsive: true,
-
       maintainAspectRatio: false,
 
       scales: {
 
         y: {
-
           beginAtZero: true,
 
           ticks: {
-
             stepSize: 1
-
           }
 
         }
@@ -615,20 +486,17 @@ function updateLeadTrendChart() {
     }
 
   });
-
 }
 
 
 // ============================================================
-// 10. UPDATE ALL CHARTS
+// 10. UPDATE CHARTS
 // ============================================================
 
 function updateCharts() {
 
   updateStatusChart();
-
   updateCompanyChart();
-
   updateLeadTrendChart();
 
 }
@@ -640,11 +508,14 @@ function updateCharts() {
 
 function renderTable() {
 
+  if (!tableBody) {
+    return;
+  }
+
+
   const query =
     searchInput
-      ? searchInput.value
-          .toLowerCase()
-          .trim()
+      ? searchInput.value.toLowerCase().trim()
       : "";
 
 
@@ -664,18 +535,13 @@ function renderTable() {
     customers.filter(customer => {
 
       const name =
-        (customer.name || "")
-          .toLowerCase();
-
+        (customer.name || "").toLowerCase();
 
       const email =
-        (customer.email || "")
-          .toLowerCase();
-
+        (customer.email || "").toLowerCase();
 
       const company =
-        (customer.company || "")
-          .toLowerCase();
+        (customer.company || "").toLowerCase();
 
 
       const matchesSearch =
@@ -689,13 +555,13 @@ function renderTable() {
         customer.status === selectedStatus;
 
 
-      const customerPriority =
+      const priority =
         customer.priority || "Medium";
 
 
       const matchesPriority =
         selectedPriority === "All" ||
-        customerPriority === selectedPriority;
+        priority === selectedPriority;
 
 
       return (
@@ -713,29 +579,19 @@ function renderTable() {
   if (filteredCustomers.length === 0) {
 
     tableBody.innerHTML = `
-
       <tr>
-
-        <td
-          colspan="8"
-          style="
-            text-align:center;
-            color:#64748b;
-            padding:20px;
-          "
-        >
-
+        <td colspan="8"
+            style="
+              text-align:center;
+              color:#64748b;
+              padding:20px;
+            ">
           No matching records found
-
         </td>
-
       </tr>
-
     `;
 
-  }
-
-  else {
+  } else {
 
     filteredCustomers.forEach(customer => {
 
@@ -751,12 +607,30 @@ function renderTable() {
         priority.toLowerCase();
 
 
-      const followUp =
-        customer.followUpDate
-          ? new Date(
-              customer.followUpDate
-            ).toLocaleDateString()
-          : "-";
+      let followUp = "-";
+
+
+      if (customer.followUpDate) {
+
+        const date =
+          new Date(customer.followUpDate);
+
+        if (!isNaN(date.getTime())) {
+
+          followUp =
+            date.toLocaleDateString();
+
+        }
+
+      }
+
+
+      const status =
+        customer.status || "New";
+
+
+      const statusClass =
+        status.toLowerCase();
 
 
       const row =
@@ -771,69 +645,47 @@ function renderTable() {
           </strong>
         </td>
 
-
         <td>
           ${escapeHTML(customer.email)}
         </td>
-
 
         <td>
           ${escapeHTML(customer.phone)}
         </td>
 
-
         <td>
           ${escapeHTML(customer.company || "-")}
         </td>
 
-
         <td>
-
-          <span class="status-badge status-${escapeHTML(
-            (customer.status || "New").toLowerCase()
-          )}">
-
-            ${escapeHTML(customer.status || "New")}
-
+          <span class="status-badge status-${escapeHTML(statusClass)}">
+            ${escapeHTML(status)}
           </span>
-
         </td>
 
-
         <td>
-
-          <span class="priority-badge priority-${priorityClass}">
-
+          <span class="priority-badge priority-${escapeHTML(priorityClass)}">
             ${escapeHTML(priority)}
-
           </span>
-
         </td>
-
 
         <td>
-
           ${escapeHTML(followUp)}
-
         </td>
-
 
         <td>
 
           <button
             type="button"
             class="edit-btn"
-            onclick="editCustomer(${originalIndex})"
-          >
+            onclick="editCustomer(${originalIndex})">
             Edit
           </button>
-
 
           <button
             type="button"
             class="delete-btn"
-            onclick="deleteCustomer(${originalIndex})"
-          >
+            onclick="deleteCustomer(${originalIndex})">
             Delete
           </button>
 
@@ -855,96 +707,113 @@ function renderTable() {
 
 
 // ============================================================
-// 12. CREATE / UPDATE CUSTOMER
+// 12. ADD / UPDATE CUSTOMER
 // ============================================================
 
-customerForm.addEventListener(
-  "submit",
-  function (e) {
+if (customerForm) {
 
-    e.preventDefault();
+  customerForm.addEventListener(
+    "submit",
+    function (event) {
 
-
-    const currentIndex =
-      parseInt(
-        editIndexInput.value,
-        10
-      );
+      event.preventDefault();
 
 
-    const existingCustomer =
-      currentIndex >= 0
-        ? customers[currentIndex]
-        : null;
+      const currentIndex =
+        parseInt(
+          editIndexInput.value,
+          10
+        );
 
 
-    const customerData = {
-
-      name:
-        nameInput.value.trim(),
-
-      email:
-        emailInput.value.trim(),
-
-      phone:
-        phoneInput.value.trim(),
-
-      company:
-        companyInput.value.trim(),
-
-      status:
-        statusInput.value,
-
-      priority:
-        priorityInput.value || "Medium",
-
-      followUpDate:
-        followUpDateInput.value,
-
-      notes:
-        notesInput.value.trim(),
-
-      // Keep original creation date when editing
-      createdAt:
-        existingCustomer?.createdAt ||
-        new Date().toISOString()
-
-    };
+      const existingCustomer =
+        currentIndex >= 0
+          ? customers[currentIndex]
+          : null;
 
 
-    // CREATE
-    if (currentIndex === -1) {
+      const customerData = {
 
-      customers.push(customerData);
+        name:
+          nameInput.value.trim(),
 
-      addActivity(
-        `Added lead - ${customerData.name}`
-      );
+        email:
+          emailInput.value.trim(),
+
+        phone:
+          phoneInput.value.trim(),
+
+        company:
+          companyInput.value.trim(),
+
+        status:
+          statusInput.value,
+
+        priority:
+          priorityInput.value || "Medium",
+
+        followUpDate:
+          followUpDateInput.value,
+
+        notes:
+          notesInput.value.trim(),
+
+        createdAt:
+          existingCustomer?.createdAt ||
+          new Date().toISOString()
+
+      };
+
+
+      // -----------------------------
+      // ADD
+      // -----------------------------
+
+      if (
+        isNaN(currentIndex) ||
+        currentIndex === -1
+      ) {
+
+        customers.push(customerData);
+
+        saveToStorage();
+
+        addActivity(
+          `Added lead - ${customerData.name}`
+        );
+
+      }
+
+
+      // -----------------------------
+      // UPDATE
+      // -----------------------------
+
+      else if (
+        currentIndex >= 0 &&
+        currentIndex < customers.length
+      ) {
+
+        customers[currentIndex] =
+          customerData;
+
+        saveToStorage();
+
+        addActivity(
+          `Updated lead - ${customerData.name}`
+        );
+
+      }
+
+
+      resetForm();
+
+      renderTable();
 
     }
+  );
 
-    // UPDATE
-    else {
-
-      customers[currentIndex] =
-        customerData;
-
-
-      addActivity(
-        `Updated lead - ${customerData.name}`
-      );
-
-    }
-
-
-    saveToStorage();
-
-    resetForm();
-
-    renderTable();
-
-  }
-);
+}
 
 
 // ============================================================
@@ -970,30 +839,23 @@ window.editCustomer =
     nameInput.value =
       customer.name || "";
 
-
     emailInput.value =
       customer.email || "";
-
 
     phoneInput.value =
       customer.phone || "";
 
-
     companyInput.value =
       customer.company || "";
-
 
     statusInput.value =
       customer.status || "New";
 
-
     priorityInput.value =
       customer.priority || "Medium";
 
-
     followUpDateInput.value =
       customer.followUpDate || "";
-
 
     notesInput.value =
       customer.notes || "";
@@ -1004,19 +866,14 @@ window.editCustomer =
 
 
     if (cancelBtn) {
-
       cancelBtn.style.display =
         "inline-block";
-
     }
 
 
     customerForm.scrollIntoView({
-
       behavior: "smooth",
-
       block: "start"
-
     });
 
   };
@@ -1028,31 +885,31 @@ window.editCustomer =
 
 function resetForm() {
 
-  customerForm.reset();
-
-
-  editIndexInput.value =
-    "-1";
-
-
-  submitBtn.textContent =
-    "Add Customer";
-
-
-  if (cancelBtn) {
-
-    cancelBtn.style.display =
-      "none";
-
+  if (customerForm) {
+    customerForm.reset();
   }
 
 
-  // Reset default priority
-  if (priorityInput) {
+  if (editIndexInput) {
+    editIndexInput.value = "-1";
+  }
 
+
+  if (submitBtn) {
+    submitBtn.textContent =
+      "Add Customer";
+  }
+
+
+  if (cancelBtn) {
+    cancelBtn.style.display =
+      "none";
+  }
+
+
+  if (priorityInput) {
     priorityInput.value =
       "Medium";
-
   }
 
 }
@@ -1088,13 +945,11 @@ window.deleteCustomer =
     }
 
 
-    const confirmed =
-      confirm(
+    if (
+      !confirm(
         `Delete record for ${customer.name}?`
-      );
-
-
-    if (!confirmed) {
+      )
+    ) {
       return;
     }
 
@@ -1114,8 +969,8 @@ window.deleteCustomer =
     );
 
 
-    // If the deleted customer was being edited
     if (
+      editIndexInput &&
       parseInt(
         editIndexInput.value,
         10
@@ -1133,7 +988,7 @@ window.deleteCustomer =
 
 
 // ============================================================
-// 17. UPCOMING FOLLOW-UPS
+// 17. FOLLOW-UPS
 // ============================================================
 
 function updateFollowUps() {
@@ -1146,68 +1001,47 @@ function updateFollowUps() {
   followUpList.innerHTML = "";
 
 
-  const today =
-    new Date();
-
-  today.setHours(
-    0,
-    0,
-    0,
-    0
-  );
-
-
   const upcoming =
     customers
-
       .filter(
         customer =>
           customer.followUpDate
       )
-
       .sort(
         (a, b) =>
           new Date(a.followUpDate) -
           new Date(b.followUpDate)
       )
-
       .slice(0, 5);
 
 
   if (upcoming.length === 0) {
 
     followUpList.innerHTML = `
-
       <div class="empty-state">
-
         No upcoming follow-ups
-
       </div>
-
     `;
 
     return;
-
   }
+
+
+  const today =
+    new Date();
+
+  today.setHours(0, 0, 0, 0);
 
 
   upcoming.forEach(customer => {
 
     const date =
-      new Date(
-        customer.followUpDate
-      );
+      new Date(customer.followUpDate);
+
+    date.setHours(0, 0, 0, 0);
 
 
-    date.setHours(
-      0,
-      0,
-      0,
-      0
-    );
-
-
-    let dateLabel =
+    let label =
       date.toLocaleDateString();
 
 
@@ -1216,11 +1050,9 @@ function updateFollowUps() {
       today.getTime()
     ) {
 
-      dateLabel = "Today";
+      label = "Today";
 
-    }
-
-    else {
+    } else {
 
       const tomorrow =
         new Date(today);
@@ -1235,8 +1067,7 @@ function updateFollowUps() {
         tomorrow.getTime()
       ) {
 
-        dateLabel =
-          "Tomorrow";
+        label = "Tomorrow";
 
       }
 
@@ -1254,28 +1085,27 @@ function updateFollowUps() {
     item.innerHTML = `
 
       <div>
-
         <strong>
           ${escapeHTML(customer.name)}
         </strong>
 
         <span>
-          ${escapeHTML(customer.company || "No company")}
+          ${escapeHTML(
+            customer.company || "No company"
+          )}
         </span>
-
       </div>
 
-
       <div>
-
         <strong>
-          ${dateLabel}
+          ${escapeHTML(label)}
         </strong>
 
-        <small>
-          ${escapeHTML(customer.status || "New")}
-        </small>
-
+        <span>
+          ${escapeHTML(
+            customer.status || "New"
+          )}
+        </span>
       </div>
 
     `;
@@ -1301,28 +1131,18 @@ function exportCSV() {
     );
 
     return;
-
   }
 
 
   const headers = [
-
     "Name",
-
     "Email",
-
     "Phone",
-
     "Company",
-
     "Status",
-
     "Priority",
-
     "Follow-up Date",
-
     "Notes"
-
   ];
 
 
@@ -1330,50 +1150,24 @@ function exportCSV() {
     customers.map(customer => [
 
       customer.name || "",
-
       customer.email || "",
-
       customer.phone || "",
-
       customer.company || "",
-
       customer.status || "",
-
       customer.priority || "Medium",
-
       customer.followUpDate || "",
-
       customer.notes || ""
 
     ]);
 
 
-  const csvRows = [
-
-    headers,
-
-    ...rows
-
-  ];
-
-
   const csvContent =
-    csvRows
-
+    [headers, ...rows]
       .map(row =>
-
-        row.map(value => {
-
-          const safeValue =
-            String(value)
-              .replace(/"/g, '""');
-
-          return `"${safeValue}"`;
-
-        }).join(",")
-
+        row.map(value =>
+          `"${String(value).replace(/"/g, '""')}"`
+        ).join(",")
       )
-
       .join("\n");
 
 
@@ -1394,10 +1188,7 @@ function exportCSV() {
     document.createElement("a");
 
 
-  link.href =
-    url;
-
-
+  link.href = url;
   link.download =
     "lead-management-data.csv";
 
@@ -1407,7 +1198,6 @@ function exportCSV() {
   link.click();
 
   document.body.removeChild(link);
-
 
   URL.revokeObjectURL(url);
 
@@ -1436,12 +1226,12 @@ if (exportBtn) {
 function loadTheme() {
 
   const savedTheme =
-    localStorage.getItem(
-      "theme"
-    );
+    localStorage.getItem("theme");
 
 
-  if (savedTheme === "dark") {
+  if (
+    savedTheme === "dark"
+  ) {
 
     document.body.classList.add(
       "dark-mode"
@@ -1471,7 +1261,7 @@ if (themeToggle) {
       );
 
 
-      const isDark =
+      const dark =
         document.body.classList.contains(
           "dark-mode"
         );
@@ -1479,12 +1269,12 @@ if (themeToggle) {
 
       localStorage.setItem(
         "theme",
-        isDark ? "dark" : "light"
+        dark ? "dark" : "light"
       );
 
 
       themeToggle.textContent =
-        isDark
+        dark
           ? "Light Mode"
           : "Dark Mode";
 
@@ -1495,7 +1285,7 @@ if (themeToggle) {
 
 
 // ============================================================
-// 20. EVENT LISTENERS
+// 20. FILTERS
 // ============================================================
 
 if (searchInput) {
@@ -1539,4 +1329,3 @@ renderTable();
 updateActivity();
 
 updateFollowUps();
-```
