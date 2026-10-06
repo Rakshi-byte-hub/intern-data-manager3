@@ -1,132 +1,620 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lead Management dashboard</title>
-  <!--Just linking external css stylesheet below-->
+
+  <title>Lead Management Dashboard</title>
+
+  <!-- External CSS -->
   <link rel="stylesheet" href="style.css">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
 
-  <header>
-     <h1>Lead Management dashboard</h1>
-    <!-- Dashboard Metric Cards -->
-<section class="dashboard-grid">
-  <div class="stat-card">
-    <span class="stat-title">Total Leads</span>
-    <span class="stat-value" id="stat-total">0</span>
-  </div>
-  <div class="stat-card">
-    <span class="stat-title">New</span>
-    <span class="stat-value" id="stat-new">0</span>
-  </div>
-  <div class="stat-card">
-    <span class="stat-title">Contacted</span>
-    <span class="stat-value" id="stat-contacted">0</span>
-  </div>
-  <div class="stat-card">
-    <span class="stat-title">Interested</span>
-    <span class="stat-value" id="stat-interested">0</span>
-  </div>
-  <div class="stat-card">
-    <span class="stat-title">Closed</span>
-    <span class="stat-value" id="stat-closed">0</span>
-  </div>
-</section>
-    
+  <!-- ================= HEADER ================= -->
+
+  <header class="main-header">
+
+    <div class="header-top">
+      <div>
+        <h1>Lead Management Dashboard</h1>
+        <p>Track, manage and analyze your leads</p>
+      </div>
+
+      <button id="theme-toggle" class="theme-btn">
+        Dark Mode
+      </button>
+    </div>
+
+
+    <!-- ================= DASHBOARD METRICS ================= -->
+
+    <section class="dashboard-grid">
+
+      <div class="stat-card">
+        <span class="stat-title">Total Leads</span>
+        <span class="stat-value" id="stat-total">0</span>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-title">New</span>
+        <span class="stat-value" id="stat-new">0</span>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-title">Contacted</span>
+        <span class="stat-value" id="stat-contacted">0</span>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-title">Interested</span>
+        <span class="stat-value" id="stat-interested">0</span>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-title">Closed</span>
+        <span class="stat-value" id="stat-closed">0</span>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-title">Conversion Rate</span>
+        <span class="stat-value" id="stat-conversion">0%</span>
+      </div>
+
+    </section>
+
   </header>
 
+
+  <!-- ================= MAIN ================= -->
+
   <main>
-    <!-- Customer Input Form -->
-    <section>
-      <h2>Add Customer Details</h2>
-      <form id="customer-form">
-        <!-- Hidden input to track edit index -->
-        <input type="hidden" id="edit-index" value="-1">
-        
+
+
+    <!-- ================= ANALYTICS ================= -->
+
+    <section class="analytics-section">
+
+      <div class="section-heading">
         <div>
-          <label for="name">Customer Name:</label>
-          <input type="text" id="name" name="name" required placeholder="Enter customer name">
-        </div>
-
-        <div>
-          <label for="email">Email:</label>
-          <input type="email" id="email" name="email" required placeholder="name@example.com">
-        </div>
-
-        <div>
-          <label for="phone">Phone Number:</label>
-          <input type="tel" id="phone" name="phone" required placeholder="e.g. +91 9876543210">
-        </div>
-
-        <div>
-          <label for="company">Company Name:</label>
-          <input type="text" id="company" name="company" placeholder="Enter company name">
-        </div>
-
-        <div>
-          <label for="status">Status:</label>
-          <select id="status" name="status">
-            <option value="New">New</option>
-            <option value="Contacted">Contacted</option>
-            <option value="Interested">Interested</option>
-            <option value="Closed">Closed</option>
-          </select>
-        </div>
-
-        <div>
-          <label for="notes">Notes:</label>
-          <textarea id="notes" name="notes" rows="4" cols="30" placeholder="Add any relevant notes or context..."></textarea>
-        </div>
-
-        <button type="submit">Add Customer</button>
-      </form>
-    </section>
-
-    <hr>
-     <!-- Search & Filter Controls -->
-    <section>
-      <h2>Search & Filter</h2>
-      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-        <div style="flex: 1; min-width: 200px;">
-          <label for="search-input">Search Customer:</label>
-          <input type="text" id="search-input" placeholder="Search by name...">
-        </div>
-        <div style="width: 200px;">
-          <label for="filter-status">Filter by Status:</label>
-          <select id="filter-status">
-            <option value="All">All</option>
-            <option value="New">New</option>
-            <option value="Contacted">Contacted</option>
-            <option value="Interested">Interested</option>
-            <option value="Closed">Closed</option>
-          </select>
+          <h2>Analytics</h2>
+          <p>Overview of your lead performance</p>
         </div>
       </div>
+
+
+      <div class="charts-grid">
+
+        <!-- Status Chart -->
+
+        <div class="chart-card">
+
+          <h3>Lead Status Distribution</h3>
+
+          <div class="chart-container">
+            <canvas id="statusChart"></canvas>
+          </div>
+
+        </div>
+
+
+        <!-- Company Chart -->
+
+        <div class="chart-card">
+
+          <h3>Leads by Company</h3>
+
+          <div class="chart-container">
+            <canvas id="companyChart"></canvas>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- Lead Trend Chart -->
+
+      <div class="chart-card full-width">
+
+        <h3>Lead Overview</h3>
+
+        <div class="chart-container trend-chart">
+          <canvas id="leadTrendChart"></canvas>
+        </div>
+
+      </div>
+
     </section>
 
-    <!-- Records Table -->
-    <section>
-      <h2>Customer Records</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Company</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="customer-table-body">
-          <!-- Rendered dynamically -->
-        </tbody>
-      </table>
+
+
+    <!-- ================= CUSTOMER FORM ================= -->
+
+    <section class="form-section">
+
+      <div class="section-heading">
+
+        <div>
+          <h2>Add Customer Details</h2>
+          <p>Add a new lead or update an existing lead</p>
+        </div>
+
+      </div>
+
+
+      <form id="customer-form">
+
+        <!-- Hidden input used while editing -->
+
+        <input
+          type="hidden"
+          id="edit-index"
+          value="-1"
+        >
+
+
+        <!-- Customer Name -->
+
+        <div class="form-group">
+
+          <label for="name">
+            Customer Name
+          </label>
+
+          <input
+            type="text"
+            id="name"
+            name="name"
+            required
+            placeholder="Enter customer name"
+          >
+
+        </div>
+
+
+        <!-- Email -->
+
+        <div class="form-group">
+
+          <label for="email">
+            Email
+          </label>
+
+          <input
+            type="email"
+            id="email"
+            name="email"
+            required
+            placeholder="name@example.com"
+          >
+
+        </div>
+
+
+        <!-- Phone -->
+
+        <div class="form-group">
+
+          <label for="phone">
+            Phone Number
+          </label>
+
+          <input
+            type="tel"
+            id="phone"
+            name="phone"
+            required
+            placeholder="e.g. +91 9876543210"
+          >
+
+        </div>
+
+
+        <!-- Company -->
+
+        <div class="form-group">
+
+          <label for="company">
+            Company Name
+          </label>
+
+          <input
+            type="text"
+            id="company"
+            name="company"
+            placeholder="Enter company name"
+          >
+
+        </div>
+
+
+        <!-- Status -->
+
+        <div class="form-group">
+
+          <label for="status">
+            Status
+          </label>
+
+          <select
+            id="status"
+            name="status"
+          >
+
+            <option value="New">
+              New
+            </option>
+
+            <option value="Contacted">
+              Contacted
+            </option>
+
+            <option value="Interested">
+              Interested
+            </option>
+
+            <option value="Closed">
+              Closed
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- Priority -->
+
+        <div class="form-group">
+
+          <label for="priority">
+            Priority
+          </label>
+
+          <select
+            id="priority"
+            name="priority"
+          >
+
+            <option value="Low">
+              Low
+            </option>
+
+            <option value="Medium" selected>
+              Medium
+            </option>
+
+            <option value="High">
+              High
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- Follow-up Date -->
+
+        <div class="form-group">
+
+          <label for="followUpDate">
+            Follow-up Date
+          </label>
+
+          <input
+            type="date"
+            id="followUpDate"
+            name="followUpDate"
+          >
+
+        </div>
+
+
+        <!-- Notes -->
+
+        <div class="form-group full-width">
+
+          <label for="notes">
+            Notes
+          </label>
+
+          <textarea
+            id="notes"
+            name="notes"
+            rows="4"
+            placeholder="Add any relevant notes or context..."
+          ></textarea>
+
+        </div>
+
+
+        <!-- Form Buttons -->
+
+        <div class="form-actions">
+
+          <button
+            type="submit"
+            class="primary-btn"
+            id="submit-btn"
+          >
+            Add Customer
+          </button>
+
+          <button
+            type="button"
+            class="secondary-btn"
+            id="cancel-edit"
+            style="display: none;"
+          >
+            Cancel Edit
+          </button>
+
+        </div>
+
+      </form>
+
     </section>
+
+
+
+    <!-- ================= SEARCH & FILTER ================= -->
+
+    <section class="filter-section">
+
+      <div class="section-heading">
+
+        <div>
+          <h2>Search & Filter</h2>
+          <p>Find leads quickly using the available filters</p>
+        </div>
+
+        <button
+          type="button"
+          id="export-btn"
+          class="secondary-btn"
+        >
+          Export CSV
+        </button>
+
+      </div>
+
+
+      <div class="filter-grid">
+
+
+        <!-- Search -->
+
+        <div class="form-group">
+
+          <label for="search-input">
+            Search Customer
+          </label>
+
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Search by name, email or company..."
+          >
+
+        </div>
+
+
+        <!-- Status Filter -->
+
+        <div class="form-group">
+
+          <label for="filter-status">
+            Filter by Status
+          </label>
+
+          <select id="filter-status">
+
+            <option value="All">
+              All
+            </option>
+
+            <option value="New">
+              New
+            </option>
+
+            <option value="Contacted">
+              Contacted
+            </option>
+
+            <option value="Interested">
+              Interested
+            </option>
+
+            <option value="Closed">
+              Closed
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- Priority Filter -->
+
+        <div class="form-group">
+
+          <label for="filter-priority">
+            Filter by Priority
+          </label>
+
+          <select id="filter-priority">
+
+            <option value="All">
+              All
+            </option>
+
+            <option value="High">
+              High
+            </option>
+
+            <option value="Medium">
+              Medium
+            </option>
+
+            <option value="Low">
+              Low
+            </option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- ================= FOLLOW UPS ================= -->
+
+    <section class="follow-up-section">
+
+      <div class="section-heading">
+
+        <div>
+          <h2>Upcoming Follow-ups</h2>
+          <p>Keep track of leads that need attention</p>
+        </div>
+
+      </div>
+
+
+      <div
+        id="followUpList"
+        class="follow-up-list"
+      >
+
+        <!-- Added dynamically by JavaScript -->
+
+      </div>
+
+    </section>
+
+
+
+    <!-- ================= CUSTOMER RECORDS ================= -->
+
+    <section class="records-section">
+
+      <div class="section-heading">
+
+        <div>
+          <h2>Customer Records</h2>
+          <p>Manage all your leads from one place</p>
+        </div>
+
+      </div>
+
+
+      <div class="table-container">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>Name</th>
+
+              <th>Email</th>
+
+              <th>Phone</th>
+
+              <th>Company</th>
+
+              <th>Status</th>
+
+              <th>Priority</th>
+
+              <th>Follow-up</th>
+
+              <th>Action</th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody id="customer-table-body">
+
+            <!-- Rows rendered dynamically -->
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- ================= RECENT ACTIVITY ================= -->
+
+    <section class="activity-section">
+
+      <div class="section-heading">
+
+        <div>
+          <h2>Recent Activity</h2>
+          <p>Latest changes made to your leads</p>
+        </div>
+
+      </div>
+
+
+      <div
+        id="activityList"
+        class="activity-list"
+      >
+
+        <!-- Activity generated dynamically -->
+
+      </div>
+
+    </section>
+
+
   </main>
 
+
+
+  <!-- ================= JAVASCRIPT ================= -->
+
   <script src="script.js"></script>
+
 </body>
+
 </html>
+```
+
+### One important thing
+
+**Don't deploy this yet.** This `index.html` creates all the new elements, but your current `script.js` doesn't know about all of them yet.
+
+The next file we need to update is **`script.js`**. That's where we'll actually make:
+
+* the 3 graphs work
+* Priority save correctly
+* Follow-up dates save
+* Conversion rate calculate
+* Filters work
+* Recent Activity work
+* Upcoming Follow-ups work
+* CSV export work
+* Edit/delete continue working
+* localStorage continue working
+* old data remain compatible
+
+So **send me your current `script.js` exactly as it is**, and I'll give you the **complete updated `script.js`**, preserving your existing CRUD logic rather than replacing it with unrelated code.
