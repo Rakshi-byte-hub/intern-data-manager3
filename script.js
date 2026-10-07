@@ -1,6 +1,8 @@
+```javascript
 // ============================================================
 // LEADFLOW CRM
 // Premium Lead Management Dashboard
+// Colourful Charts Edition
 // ============================================================
 
 
@@ -12,9 +14,7 @@ function loadCustomers() {
   try {
     const saved = localStorage.getItem("customers");
 
-    if (!saved) {
-      return [];
-    }
+    if (!saved) return [];
 
     const parsed = JSON.parse(saved);
 
@@ -31,9 +31,7 @@ function loadActivities() {
   try {
     const saved = localStorage.getItem("activities");
 
-    if (!saved) {
-      return [];
-    }
+    if (!saved) return [];
 
     const parsed = JSON.parse(saved);
 
@@ -146,48 +144,30 @@ const themeToggle =
 // ============================================================
 
 function saveToStorage() {
-
   try {
-
     localStorage.setItem(
       "customers",
       JSON.stringify(customers)
     );
-
   } catch (error) {
-
-    console.error(
-      "Could not save customers:",
-      error
-    );
+    console.error("Could not save customers:", error);
 
     alert(
       "Unable to save the lead data in this browser."
     );
-
   }
-
 }
 
 
 function saveActivities() {
-
   try {
-
     localStorage.setItem(
       "activities",
       JSON.stringify(activities)
     );
-
   } catch (error) {
-
-    console.error(
-      "Could not save activities:",
-      error
-    );
-
+    console.error("Could not save activities:", error);
   }
-
 }
 
 
@@ -210,7 +190,6 @@ function escapeHTML(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
-
 }
 
 
@@ -221,12 +200,8 @@ function escapeHTML(value) {
 function addActivity(message) {
 
   activities.unshift({
-
     message: message,
-
-    time:
-      new Date().toLocaleString()
-
+    time: new Date().toLocaleString()
   });
 
   activities =
@@ -235,15 +210,12 @@ function addActivity(message) {
   saveActivities();
 
   updateActivity();
-
 }
 
 
 function updateActivity() {
 
-  if (!activityList) {
-    return;
-  }
+  if (!activityList) return;
 
   activityList.innerHTML = "";
 
@@ -284,9 +256,7 @@ function updateActivity() {
     `;
 
     activityList.appendChild(item);
-
   });
-
 }
 
 
@@ -328,34 +298,20 @@ function updateDashboard() {
     ).length;
 
 
-  if (statTotal) {
-    statTotal.textContent =
-      total;
-  }
+  if (statTotal)
+    statTotal.textContent = total;
 
+  if (statNew)
+    statNew.textContent = newLeads;
 
-  if (statNew) {
-    statNew.textContent =
-      newLeads;
-  }
+  if (statContacted)
+    statContacted.textContent = contacted;
 
+  if (statInterested)
+    statInterested.textContent = interested;
 
-  if (statContacted) {
-    statContacted.textContent =
-      contacted;
-  }
-
-
-  if (statInterested) {
-    statInterested.textContent =
-      interested;
-  }
-
-
-  if (statClosed) {
-    statClosed.textContent =
-      closed;
-  }
+  if (statClosed)
+    statClosed.textContent = closed;
 
 
   const conversionRate =
@@ -365,22 +321,19 @@ function updateDashboard() {
 
 
   if (statConversion) {
-
     statConversion.textContent =
       `${conversionRate}%`;
-
   }
 
 
   updateCharts();
 
   updateFollowUps();
-
 }
 
 
 // ============================================================
-// 7. CHART COLORS
+// 7. PREMIUM CHART COLOUR SYSTEM
 // ============================================================
 
 const chartColors = {
@@ -389,53 +342,129 @@ const chartColors = {
 
   violet: "#8b5cf6",
 
+  blue: "#3b82f6",
+
   cyan: "#06b6d4",
 
-  blue: "#3b82f6",
+  teal: "#14b8a6",
 
   green: "#22c55e",
 
+  lime: "#84cc16",
+
   amber: "#f59e0b",
 
-  red: "#ef4444",
+  orange: "#f97316",
 
-  pink: "#ec4899"
+  pink: "#ec4899",
+
+  rose: "#f43f5e",
+
+  red: "#ef4444"
 
 };
 
 
-function getChartTextColor() {
+// Pie chart palette
+const pieColors = [
+
+  chartColors.purple,
+
+  chartColors.cyan,
+
+  chartColors.violet,
+
+  chartColors.green,
+
+  chartColors.amber,
+
+  chartColors.pink
+
+];
+
+
+// Bar chart palette
+const barColors = [
+
+  chartColors.purple,
+
+  chartColors.violet,
+
+  chartColors.blue,
+
+  chartColors.cyan,
+
+  chartColors.teal,
+
+  chartColors.green,
+
+  chartColors.amber,
+
+  chartColors.orange,
+
+  chartColors.pink,
+
+  chartColors.rose,
+
+  chartColors.red
+
+];
+
+
+function isDarkMode() {
 
   return document.body.classList.contains(
     "dark-mode"
-  )
-    ? "#cbd5e1"
-    : "#64748b";
+  );
+
+}
+
+
+function getChartTextColor() {
+
+  return isDarkMode()
+    ? "#dbeafe"
+    : "#475569";
 
 }
 
 
 function getChartGridColor() {
 
-  return document.body.classList.contains(
-    "dark-mode"
-  )
+  return isDarkMode()
     ? "rgba(148,163,184,0.10)"
-    : "rgba(148,163,184,0.13)";
+    : "rgba(100,116,139,0.12)";
+
+}
+
+
+function getChartBorderColor() {
+
+  return isDarkMode()
+    ? "#111827"
+    : "#ffffff";
+
+}
+
+
+function getTooltipBackground() {
+
+  return isDarkMode()
+    ? "#111827"
+    : "#0f172a";
 
 }
 
 
 // ============================================================
-// 8. STATUS CHART
+// 8. STATUS PIE / DOUGHNUT CHART
 // ============================================================
 
 function updateStatusChart() {
 
   const canvas =
-    document.getElementById(
-      "statusChart"
-    );
+    document.getElementById("statusChart");
+
 
   if (
     !canvas ||
@@ -471,9 +500,7 @@ function updateStatusChart() {
         customer.status
       )
     ) {
-
       counts[customer.status]++;
-
     }
 
   });
@@ -502,7 +529,7 @@ function updateStatusChart() {
 
               chartColors.purple,
 
-              chartColors.amber,
+              chartColors.cyan,
 
               chartColors.violet,
 
@@ -511,17 +538,13 @@ function updateStatusChart() {
             ],
 
             borderColor:
-              document.body.classList.contains(
-                "dark-mode"
-              )
-                ? "#0f172a"
-                : "#ffffff",
+              getChartBorderColor(),
 
-            borderWidth: 4,
+            borderWidth: 5,
 
-            hoverOffset: 10,
+            hoverOffset: 14,
 
-            hoverBorderWidth: 3
+            hoverBorderWidth: 4
 
           }
 
@@ -536,7 +559,7 @@ function updateStatusChart() {
 
         maintainAspectRatio: false,
 
-        cutout: "68%",
+        cutout: "64%",
 
 
         animation: {
@@ -545,7 +568,7 @@ function updateStatusChart() {
 
           animateScale: true,
 
-          duration: 900
+          duration: 1000
 
         },
 
@@ -565,11 +588,15 @@ function updateStatusChart() {
 
               pointStyle: "circle",
 
-              padding: 18,
+              padding: 20,
+
+              boxWidth: 9,
+
+              boxHeight: 9,
 
               font: {
 
-                size: 10,
+                size: 11,
 
                 weight: "600"
 
@@ -583,25 +610,31 @@ function updateStatusChart() {
           tooltip: {
 
             backgroundColor:
-              document.body.classList.contains(
-                "dark-mode"
-              )
-                ? "#111827"
-                : "#0f172a",
+              getTooltipBackground(),
 
-            titleColor: "#ffffff",
+            titleColor:
+              "#ffffff",
 
-            bodyColor: "#cbd5e1",
+            bodyColor:
+              "#e2e8f0",
 
-            padding: 12,
+            borderColor:
+              "rgba(255,255,255,0.10)",
 
-            cornerRadius: 10,
+            borderWidth: 1,
 
-            displayColors: true
+            padding: 13,
+
+            cornerRadius: 12,
+
+            displayColors: true,
+
+            boxPadding: 5
 
           }
 
         }
+
 
       }
 
@@ -611,7 +644,7 @@ function updateStatusChart() {
 
 
 // ============================================================
-// 9. COMPANY CHART
+// 9. COMPANY BAR CHART
 // ============================================================
 
 function updateCompanyChart() {
@@ -620,6 +653,7 @@ function updateCompanyChart() {
     document.getElementById(
       "companyChart"
     );
+
 
   if (
     !canvas ||
@@ -657,25 +691,13 @@ function updateCompanyChart() {
     Object.keys(companyCounts);
 
 
-  const colors = [
-
-    chartColors.purple,
-
-    chartColors.violet,
-
-    chartColors.cyan,
-
-    chartColors.blue,
-
-    chartColors.green,
-
-    chartColors.amber,
-
-    chartColors.pink,
-
-    chartColors.red
-
-  ];
+  const colors =
+    companies.map(
+      (_, index) =>
+        barColors[
+          index % barColors.length
+        ]
+    );
 
 
   companyChart =
@@ -700,23 +722,28 @@ function updateCompanyChart() {
               ),
 
             backgroundColor:
-              companies.map(
-                (_, index) =>
-                  colors[
-                    index % colors.length
-                  ]
-              ),
+              colors,
 
-            borderRadius: 9,
+            borderColor:
+              colors,
+
+            borderWidth: 1,
+
+            borderRadius: 12,
 
             borderSkipped: false,
 
-            borderWidth: 0,
+            hoverBackgroundColor:
+              colors,
+
+            hoverBorderColor:
+              "#ffffff",
 
             hoverBorderWidth: 2,
 
-            hoverBorderColor:
-              "#ffffff"
+            barPercentage: 0.72,
+
+            categoryPercentage: 0.72
 
           }
 
@@ -734,9 +761,18 @@ function updateCompanyChart() {
 
         animation: {
 
-          duration: 800,
+          duration: 1000,
 
           easing: "easeOutQuart"
+
+        },
+
+
+        interaction: {
+
+          intersect: false,
+
+          mode: "index"
 
         },
 
@@ -756,9 +792,13 @@ function updateCompanyChart() {
 
               font: {
 
-                size: 9
+                size: 10,
 
-              }
+                weight: "500"
+
+              },
+
+              padding: 8
 
             },
 
@@ -768,7 +808,16 @@ function updateCompanyChart() {
               color:
                 getChartGridColor(),
 
-              drawBorder: false
+              drawBorder: false,
+
+              lineWidth: 1
+
+            },
+
+
+            border: {
+
+              display: false
 
             }
 
@@ -784,16 +833,25 @@ function updateCompanyChart() {
 
               font: {
 
-                size: 9,
+                size: 10,
 
-                weight: "500"
+                weight: "600"
 
-              }
+              },
+
+              padding: 8
 
             },
 
 
             grid: {
+
+              display: false
+
+            },
+
+
+            border: {
 
               display: false
 
@@ -816,19 +874,26 @@ function updateCompanyChart() {
           tooltip: {
 
             backgroundColor:
-              document.body.classList.contains(
-                "dark-mode"
-              )
-                ? "#111827"
-                : "#0f172a",
+              getTooltipBackground(),
 
-            titleColor: "#ffffff",
+            titleColor:
+              "#ffffff",
 
-            bodyColor: "#cbd5e1",
+            bodyColor:
+              "#e2e8f0",
 
-            padding: 12,
+            borderColor:
+              "rgba(255,255,255,0.10)",
 
-            cornerRadius: 10
+            borderWidth: 1,
+
+            padding: 13,
+
+            cornerRadius: 12,
+
+            displayColors: true,
+
+            boxPadding: 5
 
           }
 
@@ -892,8 +957,6 @@ function updateLeadTrendChart() {
     canvas.getContext("2d");
 
 
-  // Premium gradient for line chart
-
   const gradient =
     ctx.createLinearGradient(
       0,
@@ -905,19 +968,19 @@ function updateLeadTrendChart() {
 
   gradient.addColorStop(
     0,
-    "rgba(99,102,241,0.28)"
+    "rgba(99,102,241,0.32)"
   );
 
 
   gradient.addColorStop(
-    0.5,
-    "rgba(139,92,246,0.12)"
+    0.45,
+    "rgba(139,92,246,0.16)"
   );
 
 
   gradient.addColorStop(
     1,
-    "rgba(6,182,212,0.01)"
+    "rgba(6,182,212,0.02)"
   );
 
 
@@ -952,20 +1015,19 @@ function updateLeadTrendChart() {
             borderWidth: 3,
 
             pointBackgroundColor:
-              chartColors.violet,
+              chartColors.cyan,
 
             pointBorderColor:
-              document.body.classList.contains(
-                "dark-mode"
-              )
-                ? "#0f172a"
-                : "#ffffff",
+              getChartBorderColor(),
 
             pointBorderWidth: 2,
 
             pointRadius: 4,
 
-            pointHoverRadius: 7,
+            pointHoverRadius: 8,
+
+            pointHoverBackgroundColor:
+              chartColors.violet,
 
             fill: true,
 
@@ -987,7 +1049,7 @@ function updateLeadTrendChart() {
 
         animation: {
 
-          duration: 900,
+          duration: 1000,
 
           easing: "easeOutQuart"
 
@@ -1018,9 +1080,11 @@ function updateLeadTrendChart() {
 
               font: {
 
-                size: 9
+                size: 10
 
-              }
+              },
+
+              padding: 8
 
             },
 
@@ -1031,6 +1095,13 @@ function updateLeadTrendChart() {
                 getChartGridColor(),
 
               drawBorder: false
+
+            },
+
+
+            border: {
+
+              display: false
 
             }
 
@@ -1046,14 +1117,23 @@ function updateLeadTrendChart() {
 
               font: {
 
-                size: 9
+                size: 10
 
-              }
+              },
+
+              padding: 8
 
             },
 
 
             grid: {
+
+              display: false
+
+            },
+
+
+            border: {
 
               display: false
 
@@ -1076,19 +1156,22 @@ function updateLeadTrendChart() {
           tooltip: {
 
             backgroundColor:
-              document.body.classList.contains(
-                "dark-mode"
-              )
-                ? "#111827"
-                : "#0f172a",
+              getTooltipBackground(),
 
-            titleColor: "#ffffff",
+            titleColor:
+              "#ffffff",
 
-            bodyColor: "#cbd5e1",
+            bodyColor:
+              "#e2e8f0",
 
-            padding: 12,
+            borderColor:
+              "rgba(255,255,255,0.10)",
 
-            cornerRadius: 10,
+            borderWidth: 1,
+
+            padding: 13,
+
+            cornerRadius: 12,
 
             displayColors: false
 
@@ -1124,9 +1207,7 @@ function updateCharts() {
 
 function renderTable() {
 
-  if (!tableBody) {
-    return;
-  }
+  if (!tableBody) return;
 
 
   const query =
@@ -1224,9 +1305,7 @@ function renderTable() {
             padding:30px;
           "
         >
-
           No matching records found
-
         </td>
 
       </tr>
@@ -1298,15 +1377,12 @@ function renderTable() {
         row.innerHTML = `
 
           <td>
-
             <strong>
               ${escapeHTML(
                 customer.name
               )}
             </strong>
-
           </td>
-
 
           <td>
             ${escapeHTML(
@@ -1314,13 +1390,11 @@ function renderTable() {
             )}
           </td>
 
-
           <td>
             ${escapeHTML(
               customer.phone
             )}
           </td>
-
 
           <td>
             ${escapeHTML(
@@ -1328,7 +1402,6 @@ function renderTable() {
               "-"
             )}
           </td>
-
 
           <td>
 
@@ -1345,7 +1418,6 @@ function renderTable() {
 
           </td>
 
-
           <td>
 
             <span
@@ -1361,13 +1433,9 @@ function renderTable() {
 
           </td>
 
-
           <td>
-            ${escapeHTML(
-              followUp
-            )}
+            ${escapeHTML(followUp)}
           </td>
-
 
           <td>
 
@@ -1382,7 +1450,6 @@ function renderTable() {
             >
               Edit
             </button>
-
 
             <button
               type="button"
@@ -1476,8 +1543,6 @@ if (customerForm) {
       };
 
 
-      // ADD
-
       if (
         isNaN(currentIndex) ||
         currentIndex === -1
@@ -1495,8 +1560,6 @@ if (customerForm) {
 
       }
 
-
-      // UPDATE
 
       else if (
         currentIndex >= 0 &&
@@ -1538,9 +1601,7 @@ window.editCustomer =
       customers[index];
 
 
-    if (!customer) {
-      return;
-    }
+    if (!customer) return;
 
 
     editIndexInput.value =
@@ -1675,9 +1736,7 @@ window.deleteCustomer =
       customers[index];
 
 
-    if (!customer) {
-      return;
-    }
+    if (!customer) return;
 
 
     if (
@@ -1733,9 +1792,7 @@ window.deleteCustomer =
 
 function updateFollowUps() {
 
-  if (!followUpList) {
-    return;
-  }
+  if (!followUpList) return;
 
 
   followUpList.innerHTML = "";
@@ -1813,8 +1870,7 @@ function updateFollowUps() {
       today.getTime()
     ) {
 
-      label =
-        "Today";
+      label = "Today";
 
     } else {
 
@@ -1832,8 +1888,7 @@ function updateFollowUps() {
         tomorrow.getTime()
       ) {
 
-        label =
-          "Tomorrow";
+        label = "Tomorrow";
 
       }
 
@@ -2091,9 +2146,7 @@ if (themeToggle) {
 
 
       const dark =
-        document.body.classList.contains(
-          "dark-mode"
-        );
+        isDarkMode();
 
 
       localStorage.setItem(
@@ -2109,10 +2162,6 @@ if (themeToggle) {
           ? "Light Mode"
           : "Dark Mode";
 
-
-      // Re-render charts so
-      // their labels/background
-      // match the current theme.
 
       updateCharts();
 
@@ -2167,3 +2216,4 @@ renderTable();
 updateActivity();
 
 updateFollowUps();
+```
