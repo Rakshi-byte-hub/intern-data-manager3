@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -6,595 +5,883 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Lead Management Dashboard</title>
+  <title>LeadFlow — Lead Management</title>
 
-  <!-- External CSS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
   <link rel="stylesheet" href="style.css">
 
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Chart.js premium defaults -->
+  <script>
+    Chart.defaults.font.family = "Inter, sans-serif";
+    Chart.defaults.color = "#64748b";
+    Chart.defaults.borderColor = "rgba(148, 163, 184, 0.14)";
+
+    Chart.defaults.plugins.legend.labels.usePointStyle = true;
+    Chart.defaults.plugins.legend.labels.boxWidth = 8;
+    Chart.defaults.plugins.legend.labels.padding = 18;
+
+    Chart.defaults.elements.line.borderWidth = 3;
+    Chart.defaults.elements.line.tension = 0.4;
+
+    Chart.defaults.elements.point.radius = 4;
+    Chart.defaults.elements.point.hoverRadius = 6;
+
+    Chart.defaults.animation.duration = 900;
+    Chart.defaults.animation.easing = "easeOutQuart";
+  </script>
 </head>
+
 
 <body>
 
-  <!-- ================= HEADER ================= -->
+  <!-- =====================================================
+       APP SHELL
+  ====================================================== -->
 
-  <header class="main-header">
+  <div class="app-shell">
 
-    <div class="header-top">
-      <div>
-        <h1>Lead Management Dashboard</h1>
-        <p>Track, manage and analyze your leads</p>
-      </div>
+    <!-- ===================================================
+         SIDEBAR
+    ==================================================== -->
 
-      <button id="theme-toggle" class="theme-btn">
-        Dark Mode
-      </button>
-    </div>
+    <aside class="sidebar">
 
+      <div class="brand">
 
-    <!-- ================= DASHBOARD METRICS ================= -->
-
-    <section class="dashboard-grid">
-
-      <div class="stat-card">
-        <span class="stat-title">Total Leads</span>
-        <span class="stat-value" id="stat-total">0</span>
-      </div>
-
-      <div class="stat-card">
-        <span class="stat-title">New</span>
-        <span class="stat-value" id="stat-new">0</span>
-      </div>
-
-      <div class="stat-card">
-        <span class="stat-title">Contacted</span>
-        <span class="stat-value" id="stat-contacted">0</span>
-      </div>
-
-      <div class="stat-card">
-        <span class="stat-title">Interested</span>
-        <span class="stat-value" id="stat-interested">0</span>
-      </div>
-
-      <div class="stat-card">
-        <span class="stat-title">Closed</span>
-        <span class="stat-value" id="stat-closed">0</span>
-      </div>
-
-      <div class="stat-card">
-        <span class="stat-title">Conversion Rate</span>
-        <span class="stat-value" id="stat-conversion">0%</span>
-      </div>
-
-    </section>
-
-  </header>
-
-
-  <!-- ================= MAIN ================= -->
-
-  <main>
-
-
-    <!-- ================= ANALYTICS ================= -->
-
-    <section class="analytics-section">
-
-      <div class="section-heading">
-        <div>
-          <h2>Analytics</h2>
-          <p>Overview of your lead performance</p>
-        </div>
-      </div>
-
-
-      <div class="charts-grid">
-
-        <!-- Status Chart -->
-
-        <div class="chart-card">
-
-          <h3>Lead Status Distribution</h3>
-
-          <div class="chart-container">
-            <canvas id="statusChart"></canvas>
-          </div>
-
+        <div class="brand-mark">
+          LF
         </div>
 
-
-        <!-- Company Chart -->
-
-        <div class="chart-card">
-
-          <h3>Leads by Company</h3>
-
-          <div class="chart-container">
-            <canvas id="companyChart"></canvas>
-          </div>
-
+        <div class="brand-text">
+          <strong>LeadFlow</strong>
+          <span>CRM Dashboard</span>
         </div>
 
       </div>
 
 
-      <!-- Lead Trend Chart -->
+      <nav class="sidebar-nav">
 
-      <div class="chart-card full-width">
+        <a href="#dashboard" class="nav-item active">
+          <span class="nav-icon">01</span>
+          Dashboard
+        </a>
 
-        <h3>Lead Overview</h3>
+        <a href="#analytics" class="nav-item">
+          <span class="nav-icon">02</span>
+          Analytics
+        </a>
 
-        <div class="chart-container trend-chart">
-          <canvas id="leadTrendChart"></canvas>
+        <a href="#add-lead" class="nav-item">
+          <span class="nav-icon">03</span>
+          Add Lead
+        </a>
+
+        <a href="#records" class="nav-item">
+          <span class="nav-icon">04</span>
+          Lead Records
+        </a>
+
+        <a href="#followups" class="nav-item">
+          <span class="nav-icon">05</span>
+          Follow-ups
+        </a>
+
+        <a href="#activity" class="nav-item">
+          <span class="nav-icon">06</span>
+          Activity
+        </a>
+
+      </nav>
+
+
+      <div class="sidebar-bottom">
+
+        <div class="sidebar-info">
+          <span class="status-dot"></span>
+          System operational
         </div>
 
-      </div>
-
-    </section>
-
-
-
-    <!-- ================= CUSTOMER FORM ================= -->
-
-    <section class="form-section">
-
-      <div class="section-heading">
-
-        <div>
-          <h2>Add Customer Details</h2>
-          <p>Add a new lead or update an existing lead</p>
-        </div>
-
-      </div>
-
-
-      <form id="customer-form">
-
-        <!-- Hidden input used while editing -->
-
-        <input
-          type="hidden"
-          id="edit-index"
-          value="-1"
-        >
-
-
-        <!-- Customer Name -->
-
-        <div class="form-group">
-
-          <label for="name">
-            Customer Name
-          </label>
-
-          <input
-            type="text"
-            id="name"
-            name="name"
-            required
-            placeholder="Enter customer name"
-          >
-
-        </div>
-
-
-        <!-- Email -->
-
-        <div class="form-group">
-
-          <label for="email">
-            Email
-          </label>
-
-          <input
-            type="email"
-            id="email"
-            name="email"
-            required
-            placeholder="name@example.com"
-          >
-
-        </div>
-
-
-        <!-- Phone -->
-
-        <div class="form-group">
-
-          <label for="phone">
-            Phone Number
-          </label>
-
-          <input
-            type="tel"
-            id="phone"
-            name="phone"
-            required
-            placeholder="e.g. +91 9876543210"
-          >
-
-        </div>
-
-
-        <!-- Company -->
-
-        <div class="form-group">
-
-          <label for="company">
-            Company Name
-          </label>
-
-          <input
-            type="text"
-            id="company"
-            name="company"
-            placeholder="Enter company name"
-          >
-
-        </div>
-
-
-        <!-- Status -->
-
-        <div class="form-group">
-
-          <label for="status">
-            Status
-          </label>
-
-          <select
-            id="status"
-            name="status"
-          >
-
-            <option value="New">
-              New
-            </option>
-
-            <option value="Contacted">
-              Contacted
-            </option>
-
-            <option value="Interested">
-              Interested
-            </option>
-
-            <option value="Closed">
-              Closed
-            </option>
-
-          </select>
-
-        </div>
-
-
-        <!-- Priority -->
-
-        <div class="form-group">
-
-          <label for="priority">
-            Priority
-          </label>
-
-          <select
-            id="priority"
-            name="priority"
-          >
-
-            <option value="Low">
-              Low
-            </option>
-
-            <option value="Medium" selected>
-              Medium
-            </option>
-
-            <option value="High">
-              High
-            </option>
-
-          </select>
-
-        </div>
-
-
-        <!-- Follow-up Date -->
-
-        <div class="form-group">
-
-          <label for="followUpDate">
-            Follow-up Date
-          </label>
-
-          <input
-            type="date"
-            id="followUpDate"
-            name="followUpDate"
-          >
-
-        </div>
-
-
-        <!-- Notes -->
-
-        <div class="form-group full-width">
-
-          <label for="notes">
-            Notes
-          </label>
-
-          <textarea
-            id="notes"
-            name="notes"
-            rows="4"
-            placeholder="Add any relevant notes or context..."
-          ></textarea>
-
-        </div>
-
-
-        <!-- Form Buttons -->
-
-        <div class="form-actions">
-
-          <button
-            type="submit"
-            class="primary-btn"
-            id="submit-btn"
-          >
-            Add Customer
-          </button>
-
-          <button
-            type="button"
-            class="secondary-btn"
-            id="cancel-edit"
-            style="display: none;"
-          >
-            Cancel Edit
-          </button>
-
-        </div>
-
-      </form>
-
-    </section>
-
-
-
-    <!-- ================= SEARCH & FILTER ================= -->
-
-    <section class="filter-section">
-
-      <div class="section-heading">
-
-        <div>
-          <h2>Search & Filter</h2>
-          <p>Find leads quickly using the available filters</p>
-        </div>
-
-        <button
-          type="button"
-          id="export-btn"
-          class="secondary-btn"
-        >
-          Export CSV
+        <button id="theme-toggle" class="theme-btn">
+          Dark Mode
         </button>
 
       </div>
 
+    </aside>
 
-      <div class="filter-grid">
 
+    <!-- ===================================================
+         MAIN CONTENT
+    ==================================================== -->
 
-        <!-- Search -->
+    <div class="main-wrapper">
 
-        <div class="form-group">
+      <!-- TOPBAR -->
 
-          <label for="search-input">
-            Search Customer
-          </label>
+      <header class="topbar">
 
-          <input
-            type="text"
-            id="search-input"
-            placeholder="Search by name, email or company..."
-          >
+        <div class="mobile-brand">
+          <div class="brand-mark">
+            LF
+          </div>
+
+          <strong>LeadFlow</strong>
+        </div>
+
+        <div class="topbar-right">
+
+          <div class="live-indicator">
+            <span></span>
+            Live Dashboard
+          </div>
 
         </div>
 
+      </header>
 
-        <!-- Status Filter -->
 
-        <div class="form-group">
+      <main class="content">
 
-          <label for="filter-status">
-            Filter by Status
-          </label>
 
-          <select id="filter-status">
+        <!-- =================================================
+             HERO / DASHBOARD
+        ================================================== -->
 
-            <option value="All">
-              All
-            </option>
+        <section class="hero-section" id="dashboard">
 
-            <option value="New">
-              New
-            </option>
+          <div class="hero-content">
 
-            <option value="Contacted">
-              Contacted
-            </option>
+            <div>
 
-            <option value="Interested">
-              Interested
-            </option>
+              <div class="eyebrow">
+                LEAD MANAGEMENT PLATFORM
+              </div>
 
-            <option value="Closed">
-              Closed
-            </option>
+              <h1>
+                Turn leads into
+                <span>opportunities.</span>
+              </h1>
 
-          </select>
+              <p>
+                Track, manage and analyze your customer pipeline
+                from one centralized workspace.
+              </p>
 
-        </div>
+            </div>
 
 
-        <!-- Priority Filter -->
+            <a href="#add-lead" class="hero-action">
+              <span>+</span>
+              Add New Lead
+            </a>
 
-        <div class="form-group">
+          </div>
 
-          <label for="filter-priority">
-            Filter by Priority
-          </label>
+        </section>
 
-          <select id="filter-priority">
 
-            <option value="All">
-              All
-            </option>
+        <!-- =================================================
+             KPI CARDS
+        ================================================== -->
 
-            <option value="High">
-              High
-            </option>
+        <section class="metrics-section">
 
-            <option value="Medium">
-              Medium
-            </option>
+          <div class="section-heading compact-heading">
 
-            <option value="Low">
-              Low
-            </option>
+            <div>
+              <h2>Overview</h2>
+              <p>Your lead pipeline at a glance</p>
+            </div>
 
-          </select>
+          </div>
 
-        </div>
 
-      </div>
+          <div class="dashboard-grid">
 
-    </section>
+            <div class="stat-card stat-purple">
 
+              <div class="stat-top">
+                <span class="stat-title">Total Leads</span>
+                <span class="stat-icon">TL</span>
+              </div>
 
+              <span class="stat-value" id="stat-total">0</span>
 
-    <!-- ================= FOLLOW UPS ================= -->
+              <span class="stat-caption">
+                All captured leads
+              </span>
 
-    <section class="follow-up-section">
+            </div>
 
-      <div class="section-heading">
 
-        <div>
-          <h2>Upcoming Follow-ups</h2>
-          <p>Keep track of leads that need attention</p>
-        </div>
+            <div class="stat-card stat-blue">
 
-      </div>
+              <div class="stat-top">
+                <span class="stat-title">New</span>
+                <span class="stat-icon">N</span>
+              </div>
 
+              <span class="stat-value" id="stat-new">0</span>
 
-      <div
-        id="followUpList"
-        class="follow-up-list"
-      >
+              <span class="stat-caption">
+                Awaiting action
+              </span>
 
-        <!-- Added dynamically by JavaScript -->
+            </div>
 
-      </div>
 
-    </section>
+            <div class="stat-card stat-amber">
 
+              <div class="stat-top">
+                <span class="stat-title">Contacted</span>
+                <span class="stat-icon">C</span>
+              </div>
 
+              <span class="stat-value" id="stat-contacted">0</span>
 
-    <!-- ================= CUSTOMER RECORDS ================= -->
+              <span class="stat-caption">
+                Conversations started
+              </span>
 
-    <section class="records-section">
+            </div>
 
-      <div class="section-heading">
 
-        <div>
-          <h2>Customer Records</h2>
-          <p>Manage all your leads from one place</p>
-        </div>
+            <div class="stat-card stat-violet">
 
-      </div>
+              <div class="stat-top">
+                <span class="stat-title">Interested</span>
+                <span class="stat-icon">I</span>
+              </div>
 
+              <span class="stat-value" id="stat-interested">0</span>
 
-      <div class="table-container">
+              <span class="stat-caption">
+                High potential leads
+              </span>
 
-        <table>
+            </div>
 
-          <thead>
 
-            <tr>
+            <div class="stat-card stat-green">
 
-              <th>Name</th>
+              <div class="stat-top">
+                <span class="stat-title">Closed</span>
+                <span class="stat-icon">CL</span>
+              </div>
 
-              <th>Email</th>
+              <span class="stat-value" id="stat-closed">0</span>
 
-              <th>Phone</th>
+              <span class="stat-caption">
+                Converted customers
+              </span>
 
-              <th>Company</th>
+            </div>
 
-              <th>Status</th>
 
-              <th>Priority</th>
+            <div class="stat-card stat-cyan">
 
-              <th>Follow-up</th>
+              <div class="stat-top">
+                <span class="stat-title">Conversion</span>
+                <span class="stat-icon">%</span>
+              </div>
 
-              <th>Action</th>
+              <span class="stat-value" id="stat-conversion">
+                0%
+              </span>
 
-            </tr>
+              <span class="stat-caption">
+                Overall conversion
+              </span>
 
-          </thead>
+            </div>
 
+          </div>
 
-          <tbody id="customer-table-body">
+        </section>
 
-            <!-- Rows rendered dynamically -->
 
-          </tbody>
+        <!-- =================================================
+             ANALYTICS
+        ================================================== -->
 
-        </table>
+        <section class="analytics-section" id="analytics">
 
-      </div>
+          <div class="section-heading">
 
-    </section>
+            <div>
 
+              <div class="eyebrow small">
+                INSIGHTS
+              </div>
 
+              <h2>Analytics</h2>
 
-    <!-- ================= RECENT ACTIVITY ================= -->
+              <p>
+                Understand how your lead pipeline is performing.
+              </p>
 
-    <section class="activity-section">
+            </div>
 
-      <div class="section-heading">
+          </div>
 
-        <div>
-          <h2>Recent Activity</h2>
-          <p>Latest changes made to your leads</p>
-        </div>
 
-      </div>
+          <div class="charts-grid">
 
+            <div class="chart-card">
 
-      <div
-        id="activityList"
-        class="activity-list"
-      >
+              <div class="chart-header">
 
-        <!-- Activity generated dynamically -->
+                <div>
+                  <h3>Lead Status</h3>
+                  <span>Distribution across pipeline</span>
+                </div>
 
-      </div>
+              </div>
 
-    </section>
+              <div class="chart-container">
+                <canvas id="statusChart"></canvas>
+              </div>
 
+            </div>
 
-  </main>
 
+            <div class="chart-card">
 
+              <div class="chart-header">
 
-  <!-- ================= JAVASCRIPT ================= -->
+                <div>
+                  <h3>Leads by Company</h3>
+                  <span>Company-wise distribution</span>
+                </div>
+
+              </div>
+
+              <div class="chart-container">
+                <canvas id="companyChart"></canvas>
+              </div>
+
+            </div>
+
+
+            <div class="chart-card full-width">
+
+              <div class="chart-header">
+
+                <div>
+                  <h3>Lead Overview</h3>
+                  <span>Lead creation activity over time</span>
+                </div>
+
+              </div>
+
+              <div class="chart-container trend-chart">
+                <canvas id="leadTrendChart"></canvas>
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- =================================================
+             ADD LEAD
+        ================================================== -->
+
+        <section class="form-section" id="add-lead">
+
+          <div class="section-heading">
+
+            <div>
+
+              <div class="eyebrow small">
+                PIPELINE
+              </div>
+
+              <h2>Add Customer</h2>
+
+              <p>
+                Create a new lead or update an existing record.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <form id="customer-form">
+
+            <input
+              type="hidden"
+              id="edit-index"
+              value="-1"
+            >
+
+
+            <div class="form-grid">
+
+
+              <div class="form-group">
+
+                <label for="name">
+                  Customer Name
+                </label>
+
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  required
+                  placeholder="Enter customer name"
+                >
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label for="email">
+                  Email Address
+                </label>
+
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  required
+                  placeholder="name@example.com"
+                >
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label for="phone">
+                  Phone Number
+                </label>
+
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  required
+                  placeholder="+91 9876543210"
+                >
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label for="company">
+                  Company
+                </label>
+
+                <input
+                  type="text"
+                  id="company"
+                  name="company"
+                  placeholder="Company name"
+                >
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label for="status">
+                  Lead Status
+                </label>
+
+                <select id="status" name="status">
+
+                  <option value="New">
+                    New
+                  </option>
+
+                  <option value="Contacted">
+                    Contacted
+                  </option>
+
+                  <option value="Interested">
+                    Interested
+                  </option>
+
+                  <option value="Closed">
+                    Closed
+                  </option>
+
+                </select>
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label for="priority">
+                  Priority
+                </label>
+
+                <select id="priority" name="priority">
+
+                  <option value="Low">
+                    Low
+                  </option>
+
+                  <option value="Medium" selected>
+                    Medium
+                  </option>
+
+                  <option value="High">
+                    High
+                  </option>
+
+                </select>
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label for="followUpDate">
+                  Follow-up Date
+                </label>
+
+                <input
+                  type="date"
+                  id="followUpDate"
+                  name="followUpDate"
+                >
+
+              </div>
+
+
+              <div class="form-group form-notes">
+
+                <label for="notes">
+                  Notes
+                </label>
+
+                <textarea
+                  id="notes"
+                  name="notes"
+                  rows="4"
+                  placeholder="Add relevant notes or context..."
+                ></textarea>
+
+              </div>
+
+            </div>
+
+
+            <div class="form-actions">
+
+              <button
+                type="submit"
+                class="primary-btn"
+                id="submit-btn"
+              >
+                Add Customer
+              </button>
+
+              <button
+                type="button"
+                class="secondary-btn"
+                id="cancel-edit"
+                style="display:none;"
+              >
+                Cancel Edit
+              </button>
+
+            </div>
+
+          </form>
+
+        </section>
+
+
+        <!-- =================================================
+             SEARCH
+        ================================================== -->
+
+        <section class="filter-section">
+
+          <div class="section-heading">
+
+            <div>
+
+              <div class="eyebrow small">
+                MANAGEMENT
+              </div>
+
+              <h2>Search & Filter</h2>
+
+              <p>
+                Quickly find the leads you're looking for.
+              </p>
+
+            </div>
+
+
+            <button
+              type="button"
+              id="export-btn"
+              class="export-btn"
+            >
+              Export CSV
+            </button>
+
+          </div>
+
+
+          <div class="filter-grid">
+
+            <div class="form-group">
+
+              <label for="search-input">
+                Search
+              </label>
+
+              <input
+                type="text"
+                id="search-input"
+                placeholder="Search by name, email or company..."
+              >
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label for="filter-status">
+                Status
+              </label>
+
+              <select id="filter-status">
+
+                <option value="All">
+                  All statuses
+                </option>
+
+                <option value="New">
+                  New
+                </option>
+
+                <option value="Contacted">
+                  Contacted
+                </option>
+
+                <option value="Interested">
+                  Interested
+                </option>
+
+                <option value="Closed">
+                  Closed
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label for="filter-priority">
+                Priority
+              </label>
+
+              <select id="filter-priority">
+
+                <option value="All">
+                  All priorities
+                </option>
+
+                <option value="High">
+                  High
+                </option>
+
+                <option value="Medium">
+                  Medium
+                </option>
+
+                <option value="Low">
+                  Low
+                </option>
+
+              </select>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- =================================================
+             FOLLOW UPS
+        ================================================== -->
+
+        <section
+          class="follow-up-section"
+          id="followups"
+        >
+
+          <div class="section-heading">
+
+            <div>
+
+              <div class="eyebrow small">
+                NEXT ACTIONS
+              </div>
+
+              <h2>Upcoming Follow-ups</h2>
+
+              <p>
+                Leads that need your attention.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div
+            id="followUpList"
+            class="follow-up-list"
+          ></div>
+
+        </section>
+
+
+        <!-- =================================================
+             RECORDS
+        ================================================== -->
+
+        <section
+          class="records-section"
+          id="records"
+        >
+
+          <div class="section-heading">
+
+            <div>
+
+              <div class="eyebrow small">
+                DATABASE
+              </div>
+
+              <h2>Customer Records</h2>
+
+              <p>
+                Manage your complete lead pipeline.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="table-container">
+
+            <table>
+
+              <thead>
+
+                <tr>
+
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Company</th>
+                  <th>Status</th>
+                  <th>Priority</th>
+                  <th>Follow-up</th>
+                  <th>Action</th>
+
+                </tr>
+
+              </thead>
+
+
+              <tbody id="customer-table-body"></tbody>
+
+            </table>
+
+          </div>
+
+        </section>
+
+
+        <!-- =================================================
+             ACTIVITY
+        ================================================== -->
+
+        <section
+          class="activity-section"
+          id="activity"
+        >
+
+          <div class="section-heading">
+
+            <div>
+
+              <div class="eyebrow small">
+                AUDIT TRAIL
+              </div>
+
+              <h2>Recent Activity</h2>
+
+              <p>
+                Latest changes made to your leads.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div
+            id="activityList"
+            class="activity-list"
+          ></div>
+
+        </section>
+
+
+        <footer class="footer">
+
+          <div>
+            LeadFlow CRM
+          </div>
+
+          <span>
+            Lead management made simple.
+          </span>
+
+        </footer>
+
+
+      </main>
+
+    </div>
+
+  </div>
+
 
   <script src="script.js"></script>
 
 </body>
 
 </html>
-
