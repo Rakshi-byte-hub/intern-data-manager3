@@ -1,2169 +1,421 @@
-// ============================================================
-// LEADFLOW CRM
-// Premium Lead Management Dashboard
-// ============================================================
+const $ = (selector) => document.querySelector(selector);
+const $$ = (selector) => [...document.querySelectorAll(selector)];
 
+const TOTAL_ROOMS = 40;
+const STORAGE_KEY = "havenHotelData";
 
-// ============================================================
-// 1. SAFE STORAGE
-// ============================================================
+function localDate(offset = 0) {
+  const date = new Date();
+  date.setHours(12, 0, 0, 0);
+  date.setDate(date.getDate() + offset);
+  return ${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")};
+}
 
-function loadCustomers() {
+function sampleData() {
+  return {
+    reservations: [
+      { id: "HV001", guest: "Aarav Sharma", phone: "9876543210", email: "aarav@example.com", room: "101", checkin: localDate(), checkout: localDate(2), amount: 8500, status: "Confirmed", notes: "" },
+      { id: "HV002", guest: "Priya Rao", phone: "9876501234", email: "priya@example.com", room: "102", checkin: localDate(), checkout: localDate(1), amount: 5200, status: "Checked In", notes: "" },
+      { id: "HV003", guest: "Rahul Mehta", phone: "9988776655", email: "rahul@example.com", room: "201", checkin: localDate(-1), checkout: localDate(), amount: 4100, status: "Checked In", notes: "" },
+      { id: "HV004", guest: "Sneha Iyer", phone: "9123456780", email: "sneha@example.com", room: "202", checkin: localDate(1), checkout: localDate(3), amount: 9600, status: "Confirmed", notes: "" },
+      { id: "HV005", guest: "Karan Patel", phone: "9090909090", email: "karan@example.com", room: "301", checkin: localDate(), checkout: localDate(2), amount: 7200, status: "Confirmed", notes: "" }
+    ],
+    rooms: Array.from({ length: TOTAL_ROOMS }, (_, i) => {
+      const number = String(101 + i);
+      return {
+        number,
+        type: i % 4 === 0 ? "Deluxe" : i % 4 === 1 ? "Standard" : i % 4 === 2 ? "Suite" : "Premium",
+        status: i < 5 ? "Occupied" : i < 8 ? "Cleaning" : i < 10 ? "Maintenance" : "Available"
+      };
+    })
+  };
+}
+
+function loadData() {
   try {
-    const saved = localStorage.getItem("customers");
-
-    if (!saved) {
-      return [];
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed.reservations) && Array.isArray(parsed.rooms)) return parsed;
     }
-
-    const parsed = JSON.parse(saved);
-
-    return Array.isArray(parsed) ? parsed : [];
-
   } catch (error) {
-    console.error("Could not load customers:", error);
-    return [];
+    console.error("Could not load saved hotel data:", error);
   }
+  return sampleData();
 }
 
+let data = loadData();
+let toastTimer;
 
-function loadActivities() {
+function saveData() {
   try {
-    const saved = localStorage.getItem("activities");
-
-    if (!saved) {
-      return [];
-    }
-
-    const parsed = JSON.parse(saved);
-
-    return Array.isArray(parsed) ? parsed : [];
-
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch (error) {
-    console.error("Could not load activities:", error);
-    return [];
+    notify("Could not save data in this browser.");
   }
 }
 
-
-let customers = loadCustomers();
-let activities = loadActivities();
-
-let statusChart = null;
-let companyChart = null;
-let leadTrendChart = null;
-
-
-// ============================================================
-// 2. DOM REFERENCES
-// ============================================================
-
-const statTotal =
-  document.getElementById("stat-total");
-
-const statNew =
-  document.getElementById("stat-new");
-
-const statContacted =
-  document.getElementById("stat-contacted");
-
-const statInterested =
-  document.getElementById("stat-interested");
-
-const statClosed =
-  document.getElementById("stat-closed");
-
-const statConversion =
-  document.getElementById("stat-conversion");
-
-
-const customerForm =
-  document.getElementById("customer-form");
-
-const editIndexInput =
-  document.getElementById("edit-index");
-
-const submitBtn =
-  document.getElementById("submit-btn");
-
-const cancelBtn =
-  document.getElementById("cancel-edit");
-
-
-const nameInput =
-  document.getElementById("name");
-
-const emailInput =
-  document.getElementById("email");
-
-const phoneInput =
-  document.getElementById("phone");
-
-const companyInput =
-  document.getElementById("company");
-
-const statusInput =
-  document.getElementById("status");
-
-const priorityInput =
-  document.getElementById("priority");
-
-const followUpDateInput =
-  document.getElementById("followUpDate");
-
-const notesInput =
-  document.getElementById("notes");
-
-
-const tableBody =
-  document.getElementById("customer-table-body");
-
-const searchInput =
-  document.getElementById("search-input");
-
-const filterStatus =
-  document.getElementById("filter-status");
-
-const filterPriority =
-  document.getElementById("filter-priority");
-
-
-const followUpList =
-  document.getElementById("followUpList");
-
-const activityList =
-  document.getElementById("activityList");
-
-const exportBtn =
-  document.getElementById("export-btn");
-
-const themeToggle =
-  document.getElementById("theme-toggle");
-
-
-// ============================================================
-// 3. STORAGE
-// ============================================================
-
-function saveToStorage() {
-
-  try {
-
-    localStorage.setItem(
-      "customers",
-      JSON.stringify(customers)
-    );
-
-  } catch (error) {
-
-    console.error(
-      "Could not save customers:",
-      error
-    );
-
-    alert(
-      "Unable to save the lead data in this browser."
-    );
-
-  }
-
+function notify(message) {
+  const toast = $("#toast");
+  toast.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove("show"), 2800);
 }
 
-
-function saveActivities() {
-
-  try {
-
-    localStorage.setItem(
-      "activities",
-      JSON.stringify(activities)
-    );
-
-  } catch (error) {
-
-    console.error(
-      "Could not save activities:",
-      error
-    );
-
-  }
-
+function money(value) {
+  return "₹" + Number(value || 0).toLocaleString("en-IN");
 }
-
-
-// ============================================================
-// 4. SECURITY
-// ============================================================
 
 function escapeHTML(value) {
-
-  if (
-    value === null ||
-    value === undefined
-  ) {
-    return "";
-  }
-
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  })[char]);
 }
 
-
-// ============================================================
-// 5. ACTIVITY
-// ============================================================
-
-function addActivity(message) {
-
-  activities.unshift({
-
-    message: message,
-
-    time:
-      new Date().toLocaleString()
-
-  });
-
-  activities =
-    activities.slice(0, 10);
-
-  saveActivities();
-
-  updateActivity();
-
+function statusClass(status) {
+  return status.toLowerCase().replace(/\s+/g, "-");
 }
 
-
-function updateActivity() {
-
-  if (!activityList) {
-    return;
-  }
-
-  activityList.innerHTML = "";
-
-  if (activities.length === 0) {
-
-    activityList.innerHTML = `
-      <div class="empty-state">
-        No recent activity
-      </div>
-    `;
-
-    return;
-  }
-
-
-  activities.forEach(activity => {
-
-    const item =
-      document.createElement("div");
-
-    item.className =
-      "activity-item";
-
-    item.innerHTML = `
-
-      <div class="activity-content">
-
-        <strong>
-          ${escapeHTML(activity.message)}
-        </strong>
-
-        <span>
-          ${escapeHTML(activity.time)}
-        </span>
-
-      </div>
-
-    `;
-
-    activityList.appendChild(item);
-
-  });
-
+function statusBadge(status) {
+  return <span class="badge ${statusClass(status)}">${escapeHTML(status)}</span>;
 }
 
-
-// ============================================================
-// 6. DASHBOARD
-// ============================================================
-
-function updateDashboard() {
-
-  const total =
-    customers.length;
-
-
-  const newLeads =
-    customers.filter(
-      customer =>
-        customer.status === "New"
-    ).length;
-
-
-  const contacted =
-    customers.filter(
-      customer =>
-        customer.status === "Contacted"
-    ).length;
-
-
-  const interested =
-    customers.filter(
-      customer =>
-        customer.status === "Interested"
-    ).length;
-
-
-  const closed =
-    customers.filter(
-      customer =>
-        customer.status === "Closed"
-    ).length;
-
-
-  if (statTotal) {
-    statTotal.textContent =
-      total;
-  }
-
-
-  if (statNew) {
-    statNew.textContent =
-      newLeads;
-  }
-
-
-  if (statContacted) {
-    statContacted.textContent =
-      contacted;
-  }
-
-
-  if (statInterested) {
-    statInterested.textContent =
-      interested;
-  }
-
-
-  if (statClosed) {
-    statClosed.textContent =
-      closed;
-  }
-
-
-  const conversionRate =
-    total === 0
-      ? 0
-      : ((closed / total) * 100).toFixed(1);
-
-
-  if (statConversion) {
-
-    statConversion.textContent =
-      `${conversionRate}%`;
-
-  }
-
-
-  updateCharts();
-
-  updateFollowUps();
-
+function roomForBooking(reservation) {
+  return data.rooms.find(room => room.number === reservation.room);
 }
 
-
-// ============================================================
-// 7. CHART COLORS
-// ============================================================
-
-const chartColors = {
-
-  purple: "#6366f1",
-
-  violet: "#8b5cf6",
-
-  cyan: "#06b6d4",
-
-  blue: "#3b82f6",
-
-  green: "#22c55e",
-
-  amber: "#f59e0b",
-
-  red: "#ef4444",
-
-  pink: "#ec4899"
-
-};
-
-
-function getChartTextColor() {
-
-  return document.body.classList.contains(
-    "dark-mode"
-  )
-    ? "#cbd5e1"
-    : "#64748b";
-
-}
-
-
-function getChartGridColor() {
-
-  return document.body.classList.contains(
-    "dark-mode"
-  )
-    ? "rgba(148,163,184,0.10)"
-    : "rgba(148,163,184,0.13)";
-
-}
-
-
-// ============================================================
-// 8. STATUS CHART
-// ============================================================
-
-function updateStatusChart() {
-
-  const canvas =
-    document.getElementById(
-      "statusChart"
+function syncRoomStatuses() {
+  data.rooms.forEach(room => {
+    const active = data.reservations.find(r =>
+      r.room === room.number && r.status === "Checked In"
     );
+    if (active) room.status = "Occupied";
+    else if (room.status === "Occupied") room.status = "Available";
+  });
+}
 
-  if (
-    !canvas ||
-    typeof Chart === "undefined"
-  ) {
-    return;
-  }
+function showView(view) {
+  $$(".view").forEach(section => section.classList.toggle("active", section.id === view));
+  $$(".nav").forEach(button => button.classList.toggle("active", button.dataset.view === view));
+  $("#pageTitle").textContent = ({
+    dashboard: "Overview",
+    reservations: "Reservations",
+    rooms: "Room Management",
+    guests: "Guests",
+    housekeeping: "Housekeeping"
+  })[view] || "Overview";
 
+  $(".sidebar").classList.remove("open");
+  renderAll();
+}
 
-  if (statusChart) {
-    statusChart.destroy();
-  }
+function availableRooms() {
+  return data.rooms.filter(room => room.status === "Available");
+}
 
+function renderDashboard() {
+  const occupied = data.rooms.filter(r => r.status === "Occupied").length;
+  const arrivals = data.reservations.filter(r => r.checkin === localDate() && !["Cancelled", "Checked Out"].includes(r.status));
+  const departures = data.reservations.filter(r => r.checkout === localDate() && r.status === "Checked In");
+  const revenue = data.reservations.filter(r => r.checkin === localDate() && r.status !== "Cancelled").reduce((sum, r) => sum + Number(r.amount || 0), 0);
+
+  $("#occupancy").textContent = Math.round(occupied / data.rooms.length * 100) + "%";
+  $("#arrivals").textContent = arrivals.length;
+  $("#departures").textContent = departures.length;
+  $("#revenue").textContent = money(revenue);
+
+  const rows = data.reservations.filter(r =>
+    r.checkin === localDate() || r.checkout === localDate()
+  ).slice(0, 10);
+
+  $("#dashboardTable").innerHTML = rows.length ? rows.map(r => `
+    <tr>
+      <td><strong>${escapeHTML(r.id)}</strong></td>
+      <td>${escapeHTML(r.guest)}</td>
+      <td>${escapeHTML(r.room)}</td>
+      <td>${escapeHTML(r.checkin)}</td>
+      <td>${escapeHTML(r.checkout)}</td>
+      <td>${statusBadge(r.status)}</td>
+      <td>${reservationAction(r)}</td>
+    </tr>).join("") : `<tr><td colspan="7" class="empty">No arrivals or departures scheduled for today.</td></tr>;
 
   const counts = {
-
-    New: 0,
-
-    Contacted: 0,
-
-    Interested: 0,
-
-    Closed: 0
-
+    Occupied: data.rooms.filter(r => r.status === "Occupied").length,
+    Available: data.rooms.filter(r => r.status === "Available").length,
+    Cleaning: data.rooms.filter(r => r.status === "Cleaning").length,
+    Maintenance: data.rooms.filter(r => r.status === "Maintenance").length
   };
 
+  $("#roomSummary").innerHTML = Object.entries(counts).map(([name, count]) => `
+    <div><strong>${count}</strong>${statusBadge(name)}<span>${name} rooms</span></div>
+  `).join("");
+}
 
-  customers.forEach(customer => {
+function reservationAction(r) {
+  if (r.status === "Confirmed") return <button class="action-btn" data-action="checkin" data-id="${escapeHTML(r.id)}">Check in</button>;
+  if (r.status === "Checked In") return <button class="action-btn" data-action="checkout" data-id="${escapeHTML(r.id)}">Check out</button>;
+  return <span class="muted">—</span>;
+}
 
-    if (
-      Object.prototype.hasOwnProperty.call(
-        counts,
-        customer.status
-      )
-    ) {
-
-      counts[customer.status]++;
-
-    }
-
+function renderReservations() {
+  const search = ($("#searchBookings")?.value || "").toLowerCase();
+  const filter = $("#filterStatus")?.value || "";
+  const rows = data.reservations.filter(r => {
+    const matches = [r.id, r.guest, r.phone, r.room].some(value => String(value).toLowerCase().includes(search));
+    return matches && (!filter || r.status === filter);
   });
 
-
-  statusChart =
-    new Chart(canvas, {
-
-      type: "doughnut",
-
-      data: {
-
-        labels:
-          Object.keys(counts),
-
-        datasets: [
-
-          {
-
-            label: "Leads",
-
-            data:
-              Object.values(counts),
-
-            backgroundColor: [
-
-              chartColors.purple,
-
-              chartColors.amber,
-
-              chartColors.violet,
-
-              chartColors.green
-
-            ],
-
-            borderColor:
-              document.body.classList.contains(
-                "dark-mode"
-              )
-                ? "#0f172a"
-                : "#ffffff",
-
-            borderWidth: 4,
-
-            hoverOffset: 10,
-
-            hoverBorderWidth: 3
-
-          }
-
-        ]
-
-      },
-
-
-      options: {
-
-        responsive: true,
-
-        maintainAspectRatio: false,
-
-        cutout: "68%",
-
-
-        animation: {
-
-          animateRotate: true,
-
-          animateScale: true,
-
-          duration: 900
-
-        },
-
-
-        plugins: {
-
-          legend: {
-
-            position: "bottom",
-
-            labels: {
-
-              color:
-                getChartTextColor(),
-
-              usePointStyle: true,
-
-              pointStyle: "circle",
-
-              padding: 18,
-
-              font: {
-
-                size: 10,
-
-                weight: "600"
-
-              }
-
-            }
-
-          },
-
-
-          tooltip: {
-
-            backgroundColor:
-              document.body.classList.contains(
-                "dark-mode"
-              )
-                ? "#111827"
-                : "#0f172a",
-
-            titleColor: "#ffffff",
-
-            bodyColor: "#cbd5e1",
-
-            padding: 12,
-
-            cornerRadius: 10,
-
-            displayColors: true
-
-          }
-
-        }
-
-      }
-
-    });
-
+  $("#reservationsTable").innerHTML = rows.length ? rows.map(r => `
+    <tr>
+      <td><strong>${escapeHTML(r.id)}</strong></td>
+      <td>${escapeHTML(r.guest)}</td>
+      <td>${escapeHTML(r.phone)}</td>
+      <td>${escapeHTML(r.room)}</td>
+      <td>${escapeHTML(r.checkin)}<br><span class="muted">to ${escapeHTML(r.checkout)}</span></td>
+      <td>${money(r.amount)}</td>
+      <td>${statusBadge(r.status)}</td>
+      <td>${reservationAction(r)}</td>
+    </tr>).join("") : `<tr><td colspan="8" class="empty">No matching reservations.</td></tr>;
 }
 
+function renderRooms() {
+  $("#roomGrid").innerHTML = data.rooms.map(room => `
+    <article class="room-card">
+      <h3>Room ${escapeHTML(room.number)}</h3>
+      <p>${escapeHTML(room.type)}</p>
+      ${statusBadge(room.status)}
+      <label class="muted" style="display:block;margin-top:14px">Update status</label>
+      <select data-room="${escapeHTML(room.number)}" aria-label="Status for room ${escapeHTML(room.number)}">
+        ${["Available", "Occupied", "Cleaning", "Maintenance"].map(status =>
+          <option ${room.status === status ? "selected" : ""}>${status}</option>
+        ).join("")}
+      </select>
+    </article>
+  `).join("");
+}
 
-// ============================================================
-// 9. COMPANY CHART
-// ============================================================
-
-function updateCompanyChart() {
-
-  const canvas =
-    document.getElementById(
-      "companyChart"
-    );
-
-  if (
-    !canvas ||
-    typeof Chart === "undefined"
-  ) {
-    return;
-  }
-
-
-  if (companyChart) {
-    companyChart.destroy();
-  }
-
-
-  const companyCounts = {};
-
-
-  customers.forEach(customer => {
-
-    const company =
-      (
-        customer.company ||
-        "Unknown"
-      ).trim() ||
-      "Unknown";
-
-
-    companyCounts[company] =
-      (companyCounts[company] || 0) + 1;
-
+function renderGuests() {
+  const guests = new Map();
+  data.reservations.forEach(r => {
+    const existing = guests.get(r.phone);
+    if (existing) existing.bookings++;
+    else guests.set(r.phone, { ...r, bookings: 1 });
   });
 
-
-  const companies =
-    Object.keys(companyCounts);
-
-
-  const colors = [
-
-    chartColors.purple,
-
-    chartColors.violet,
-
-    chartColors.cyan,
-
-    chartColors.blue,
-
-    chartColors.green,
-
-    chartColors.amber,
-
-    chartColors.pink,
-
-    chartColors.red
-
-  ];
-
-
-  companyChart =
-    new Chart(canvas, {
-
-      type: "bar",
-
-      data: {
-
-        labels: companies,
-
-        datasets: [
-
-          {
-
-            label:
-              "Number of Leads",
-
-            data:
-              Object.values(
-                companyCounts
-              ),
-
-            backgroundColor:
-              companies.map(
-                (_, index) =>
-                  colors[
-                    index % colors.length
-                  ]
-              ),
-
-            borderRadius: 9,
-
-            borderSkipped: false,
-
-            borderWidth: 0,
-
-            hoverBorderWidth: 2,
-
-            hoverBorderColor:
-              "#ffffff"
-
-          }
-
-        ]
-
-      },
-
-
-      options: {
-
-        responsive: true,
-
-        maintainAspectRatio: false,
-
-
-        animation: {
-
-          duration: 800,
-
-          easing: "easeOutQuart"
-
-        },
-
-
-        scales: {
-
-          y: {
-
-            beginAtZero: true,
-
-            ticks: {
-
-              stepSize: 1,
-
-              color:
-                getChartTextColor(),
-
-              font: {
-
-                size: 9
-
-              }
-
-            },
-
-
-            grid: {
-
-              color:
-                getChartGridColor(),
-
-              drawBorder: false
-
-            }
-
-          },
-
-
-          x: {
-
-            ticks: {
-
-              color:
-                getChartTextColor(),
-
-              font: {
-
-                size: 9,
-
-                weight: "500"
-
-              }
-
-            },
-
-
-            grid: {
-
-              display: false
-
-            }
-
-          }
-
-        },
-
-
-        plugins: {
-
-          legend: {
-
-            display: false
-
-          },
-
-
-          tooltip: {
-
-            backgroundColor:
-              document.body.classList.contains(
-                "dark-mode"
-              )
-                ? "#111827"
-                : "#0f172a",
-
-            titleColor: "#ffffff",
-
-            bodyColor: "#cbd5e1",
-
-            padding: 12,
-
-            cornerRadius: 10
-
-          }
-
-        }
-
-      }
-
-    });
-
+  $("#guestsTable").innerHTML = [...guests.values()].map(g => `
+    <tr>
+      <td><strong>${escapeHTML(g.guest)}</strong></td>
+      <td>${escapeHTML(g.phone)}</td>
+      <td>${escapeHTML(g.email || "—")}</td>
+      <td>${g.bookings}</td>
+    </tr>
+  ).join("") || `<tr><td colspan="4" class="empty">No guests yet.</td></tr>;
 }
 
+function renderHousekeeping() {
+  $("#housekeepingTable").innerHTML = data.rooms.map(room => `
+    <tr>
+      <td><strong>${escapeHTML(room.number)}</strong></td>
+      <td>${escapeHTML(room.type)}</td>
+      <td>${statusBadge(room.status)}</td>
+      <td>
+        <select data-room="${escapeHTML(room.number)}">
+          ${["Available", "Occupied", "Cleaning", "Maintenance"].map(status =>
+            <option ${room.status === status ? "selected" : ""}>${status}</option>
+          ).join("")}
+        </select>
+      </td>
+    </tr>
+  `).join("");
+}
 
-// ============================================================
-// 10. LEAD TREND CHART
-// ============================================================
+function populateRoomOptions() {
+  const select = $("#bookingRoom");
+  const current = select.value;
+  const available = availableRooms();
 
-function updateLeadTrendChart() {
+  select.innerHTML = <option value="">Select an available room</option> + available.map(room =>
+    <option value="${escapeHTML(room.number)}">Room ${escapeHTML(room.number)} — ${escapeHTML(room.type)}</option>
+  ).join("");
 
-  const canvas =
-    document.getElementById(
-      "leadTrendChart"
-    );
+  if (available.some(room => room.number === current)) select.value = current;
+}
 
+function renderAll() {
+  syncRoomStatuses();
+  renderDashboard();
+  renderReservations();
+  renderRooms();
+  renderGuests();
+  renderHousekeeping();
+  populateRoomOptions();
+  $("#reservationNavCount").textContent = data.reservations.filter(r => r.status === "Confirmed").length;
+}
 
-  if (
-    !canvas ||
-    typeof Chart === "undefined"
-  ) {
+function openBookingDialog() {
+  populateRoomOptions();
+  if (!availableRooms().length) {
+    notify("No available rooms. Update room status first.");
+    return;
+  }
+  $("#bookingForm").reset();
+  $("#bookingForm").elements.checkin.value = localDate();
+  $("#bookingForm").elements.checkout.value = localDate(1);
+  populateRoomOptions();
+  $("#bookingDialog").showModal();
+}
+
+function createBooking(event) {
+  event.preventDefault();
+  const form = new FormData(event.currentTarget);
+  const guest = String(form.get("guest")).trim();
+  const phone = String(form.get("phone")).trim();
+  const email = String(form.get("email")).trim();
+  const roomNumber = String(form.get("room"));
+  const checkin = String(form.get("checkin"));
+  const checkout = String(form.get("checkout"));
+  const amount = Number(form.get("amount"));
+
+  if (!guest || !phone || !roomNumber) {
+    notify("Please fill in all required fields.");
+    return;
+  }
+  if (checkout <= checkin) {
+    notify("Check-out must be after check-in.");
     return;
   }
 
-
-  if (leadTrendChart) {
-    leadTrendChart.destroy();
+  const room = data.rooms.find(r => r.number === roomNumber);
+  if (!room || room.status !== "Available") {
+    notify("That room is no longer available.");
+    renderAll();
+    return;
   }
 
-
-  const dateCounts = {};
-
-
-  customers.forEach(customer => {
-
-    if (!customer.createdAt) {
-      return;
-    }
-
-
-    const date =
-      new Date(
-        customer.createdAt
-      ).toLocaleDateString();
-
-
-    dateCounts[date] =
-      (dateCounts[date] || 0) + 1;
-
+  const id = "HV" + Date.now().toString().slice(-6);
+  data.reservations.unshift({
+    id, guest, phone, email, room: roomNumber, checkin, checkout,
+    amount, status: "Confirmed", notes: String(form.get("notes") || "")
   });
 
-
-  const ctx =
-    canvas.getContext("2d");
-
-
-  // Premium gradient for line chart
-
-  const gradient =
-    ctx.createLinearGradient(
-      0,
-      0,
-      0,
-      300
-    );
-
-
-  gradient.addColorStop(
-    0,
-    "rgba(99,102,241,0.28)"
-  );
-
-
-  gradient.addColorStop(
-    0.5,
-    "rgba(139,92,246,0.12)"
-  );
-
-
-  gradient.addColorStop(
-    1,
-    "rgba(6,182,212,0.01)"
-  );
-
-
-  leadTrendChart =
-    new Chart(canvas, {
-
-      type: "line",
-
-      data: {
-
-        labels:
-          Object.keys(dateCounts),
-
-        datasets: [
-
-          {
-
-            label:
-              "Leads Added",
-
-            data:
-              Object.values(
-                dateCounts
-              ),
-
-            borderColor:
-              chartColors.purple,
-
-            backgroundColor:
-              gradient,
-
-            borderWidth: 3,
-
-            pointBackgroundColor:
-              chartColors.violet,
-
-            pointBorderColor:
-              document.body.classList.contains(
-                "dark-mode"
-              )
-                ? "#0f172a"
-                : "#ffffff",
-
-            pointBorderWidth: 2,
-
-            pointRadius: 4,
-
-            pointHoverRadius: 7,
-
-            fill: true,
-
-            tension: 0.4
-
-          }
-
-        ]
-
-      },
-
-
-      options: {
-
-        responsive: true,
-
-        maintainAspectRatio: false,
-
-
-        animation: {
-
-          duration: 900,
-
-          easing: "easeOutQuart"
-
-        },
-
-
-        interaction: {
-
-          intersect: false,
-
-          mode: "index"
-
-        },
-
-
-        scales: {
-
-          y: {
-
-            beginAtZero: true,
-
-            ticks: {
-
-              stepSize: 1,
-
-              color:
-                getChartTextColor(),
-
-              font: {
-
-                size: 9
-
-              }
-
-            },
-
-
-            grid: {
-
-              color:
-                getChartGridColor(),
-
-              drawBorder: false
-
-            }
-
-          },
-
-
-          x: {
-
-            ticks: {
-
-              color:
-                getChartTextColor(),
-
-              font: {
-
-                size: 9
-
-              }
-
-            },
-
-
-            grid: {
-
-              display: false
-
-            }
-
-          }
-
-        },
-
-
-        plugins: {
-
-          legend: {
-
-            display: false
-
-          },
-
-
-          tooltip: {
-
-            backgroundColor:
-              document.body.classList.contains(
-                "dark-mode"
-              )
-                ? "#111827"
-                : "#0f172a",
-
-            titleColor: "#ffffff",
-
-            bodyColor: "#cbd5e1",
-
-            padding: 12,
-
-            cornerRadius: 10,
-
-            displayColors: false
-
-          }
-
-        }
-
-      }
-
-    });
-
+  saveData();
+  $("#bookingDialog").close();
+  showView("reservations");
+  notify("Reservation created successfully.");
 }
 
+function updateReservation(id, action) {
+  const reservation = data.reservations.find(r => r.id === id);
+  if (!reservation) return;
 
-// ============================================================
-// 11. UPDATE ALL CHARTS
-// ============================================================
+  if (action === "checkin") {
+    const room = data.rooms.find(r => r.number === reservation.room);
+    if (!room) return notify("Room not found.");
+    if (room.status === "Maintenance" || room.status === "Cleaning") {
+      return notify("Room must be ready before check-in.");
+    }
+    const conflict = data.reservations.some(r =>
+      r.id !== id && r.room === reservation.room && r.status === "Checked In"
+    );
+    if (conflict) return notify("This room is already occupied.");
 
-function updateCharts() {
+    reservation.status = "Checked In";
+    room.status = "Occupied";
+    saveData();
+    renderAll();
+    notify("Guest checked in successfully.");
+  }
 
-  updateStatusChart();
-
-  updateCompanyChart();
-
-  updateLeadTrendChart();
-
+  if (action === "checkout") {
+    reservation.status = "Checked Out";
+    const room = data.rooms.find(r => r.number === reservation.room);
+    if (room) room.status = "Cleaning";
+    saveData();
+    renderAll();
+    notify("Guest checked out. Room sent for cleaning.");
+  }
 }
 
-
-// ============================================================
-// 12. RENDER TABLE
-// ============================================================
-
-function renderTable() {
-
-  if (!tableBody) {
-    return;
-  }
-
-
-  const query =
-    searchInput
-      ? searchInput.value
-          .toLowerCase()
-          .trim()
-      : "";
-
-
-  const selectedStatus =
-    filterStatus
-      ? filterStatus.value
-      : "All";
-
-
-  const selectedPriority =
-    filterPriority
-      ? filterPriority.value
-      : "All";
-
-
-  const filteredCustomers =
-    customers.filter(customer => {
-
-      const name =
-        (
-          customer.name ||
-          ""
-        ).toLowerCase();
-
-
-      const email =
-        (
-          customer.email ||
-          ""
-        ).toLowerCase();
-
-
-      const company =
-        (
-          customer.company ||
-          ""
-        ).toLowerCase();
-
-
-      const matchesSearch =
-        name.includes(query) ||
-        email.includes(query) ||
-        company.includes(query);
-
-
-      const matchesStatus =
-        selectedStatus === "All" ||
-        customer.status ===
-          selectedStatus;
-
-
-      const priority =
-        customer.priority ||
-        "Medium";
-
-
-      const matchesPriority =
-        selectedPriority === "All" ||
-        priority ===
-          selectedPriority;
-
-
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesPriority
-      );
-
-    });
-
-
-  tableBody.innerHTML = "";
-
-
-  if (
-    filteredCustomers.length === 0
-  ) {
-
-    tableBody.innerHTML = `
-
-      <tr>
-
-        <td
-          colspan="8"
-          style="
-            text-align:center;
-            color:#64748b;
-            padding:30px;
-          "
-        >
-
-          No matching records found
-
-        </td>
-
-      </tr>
-
-    `;
-
-  } else {
-
-    filteredCustomers.forEach(
-      customer => {
-
-        const originalIndex =
-          customers.indexOf(
-            customer
-          );
-
-
-        const priority =
-          customer.priority ||
-          "Medium";
-
-
-        const priorityClass =
-          priority.toLowerCase();
-
-
-        let followUp = "-";
-
-
-        if (
-          customer.followUpDate
-        ) {
-
-          const date =
-            new Date(
-              customer.followUpDate
-            );
-
-
-          if (
-            !isNaN(
-              date.getTime()
-            )
-          ) {
-
-            followUp =
-              date.toLocaleDateString();
-
-          }
-
-        }
-
-
-        const status =
-          customer.status ||
-          "New";
-
-
-        const statusClass =
-          status.toLowerCase();
-
-
-        const row =
-          document.createElement(
-            "tr"
-          );
-
-
-        row.innerHTML = `
-
-          <td>
-
-            <strong>
-              ${escapeHTML(
-                customer.name
-              )}
-            </strong>
-
-          </td>
-
-
-          <td>
-            ${escapeHTML(
-              customer.email
-            )}
-          </td>
-
-
-          <td>
-            ${escapeHTML(
-              customer.phone
-            )}
-          </td>
-
-
-          <td>
-            ${escapeHTML(
-              customer.company ||
-              "-"
-            )}
-          </td>
-
-
-          <td>
-
-            <span
-              class="
-                status-badge
-                status-${escapeHTML(
-                  statusClass
-                )}
-              "
-            >
-              ${escapeHTML(status)}
-            </span>
-
-          </td>
-
-
-          <td>
-
-            <span
-              class="
-                priority-badge
-                priority-${escapeHTML(
-                  priorityClass
-                )}
-              "
-            >
-              ${escapeHTML(priority)}
-            </span>
-
-          </td>
-
-
-          <td>
-            ${escapeHTML(
-              followUp
-            )}
-          </td>
-
-
-          <td>
-
-            <button
-              type="button"
-              class="edit-btn"
-              onclick="
-                editCustomer(
-                  ${originalIndex}
-                )
-              "
-            >
-              Edit
-            </button>
-
-
-            <button
-              type="button"
-              class="delete-btn"
-              onclick="
-                deleteCustomer(
-                  ${originalIndex}
-                )
-              "
-            >
-              Delete
-            </button>
-
-          </td>
-
-        `;
-
-
-        tableBody.appendChild(row);
-
-      }
-    );
-
-  }
-
-
-  updateDashboard();
-
-}
-
-
-// ============================================================
-// 13. ADD / UPDATE CUSTOMER
-// ============================================================
-
-if (customerForm) {
-
-  customerForm.addEventListener(
-    "submit",
-    function (event) {
-
-      event.preventDefault();
-
-
-      const currentIndex =
-        parseInt(
-          editIndexInput.value,
-          10
-        );
-
-
-      const existingCustomer =
-        currentIndex >= 0
-          ? customers[
-              currentIndex
-            ]
-          : null;
-
-
-      const customerData = {
-
-        name:
-          nameInput.value.trim(),
-
-        email:
-          emailInput.value.trim(),
-
-        phone:
-          phoneInput.value.trim(),
-
-        company:
-          companyInput.value.trim(),
-
-        status:
-          statusInput.value,
-
-        priority:
-          priorityInput.value ||
-          "Medium",
-
-        followUpDate:
-          followUpDateInput.value,
-
-        notes:
-          notesInput.value.trim(),
-
-        createdAt:
-          existingCustomer?.createdAt ||
-          new Date().toISOString()
-
-      };
-
-
-      // ADD
-
-      if (
-        isNaN(currentIndex) ||
-        currentIndex === -1
-      ) {
-
-        customers.push(
-          customerData
-        );
-
-        saveToStorage();
-
-        addActivity(
-          `Added lead - ${customerData.name}`
-        );
-
-      }
-
-
-      // UPDATE
-
-      else if (
-        currentIndex >= 0 &&
-        currentIndex <
-          customers.length
-      ) {
-
-        customers[
-          currentIndex
-        ] = customerData;
-
-        saveToStorage();
-
-        addActivity(
-          `Updated lead - ${customerData.name}`
-        );
-
-      }
-
-
-      resetForm();
-
-      renderTable();
-
-    }
-  );
-
-}
-
-
-// ============================================================
-// 14. EDIT CUSTOMER
-// ============================================================
-
-window.editCustomer =
-  function (index) {
-
-    const customer =
-      customers[index];
-
-
-    if (!customer) {
-      return;
-    }
-
-
-    editIndexInput.value =
-      index;
-
-
-    nameInput.value =
-      customer.name || "";
-
-
-    emailInput.value =
-      customer.email || "";
-
-
-    phoneInput.value =
-      customer.phone || "";
-
-
-    companyInput.value =
-      customer.company || "";
-
-
-    statusInput.value =
-      customer.status ||
-      "New";
-
-
-    priorityInput.value =
-      customer.priority ||
-      "Medium";
-
-
-    followUpDateInput.value =
-      customer.followUpDate ||
-      "";
-
-
-    notesInput.value =
-      customer.notes || "";
-
-
-    submitBtn.textContent =
-      "Update Customer";
-
-
-    if (cancelBtn) {
-
-      cancelBtn.style.display =
-        "inline-block";
-
-    }
-
-
-    customerForm.scrollIntoView({
-
-      behavior: "smooth",
-
-      block: "start"
-
-    });
-
-  };
-
-
-// ============================================================
-// 15. RESET FORM
-// ============================================================
-
-function resetForm() {
-
-  if (customerForm) {
-    customerForm.reset();
-  }
-
-
-  if (editIndexInput) {
-
-    editIndexInput.value =
-      "-1";
-
-  }
-
-
-  if (submitBtn) {
-
-    submitBtn.textContent =
-      "Add Customer";
-
-  }
-
-
-  if (cancelBtn) {
-
-    cancelBtn.style.display =
-      "none";
-
-  }
-
-
-  if (priorityInput) {
-
-    priorityInput.value =
-      "Medium";
-
-  }
-
-}
-
-
-// ============================================================
-// 16. CANCEL EDIT
-// ============================================================
-
-if (cancelBtn) {
-
-  cancelBtn.addEventListener(
-    "click",
-    resetForm
-  );
-
-}
-
-
-// ============================================================
-// 17. DELETE CUSTOMER
-// ============================================================
-
-window.deleteCustomer =
-  function (index) {
-
-    const customer =
-      customers[index];
-
-
-    if (!customer) {
-      return;
-    }
-
-
-    if (
-      !confirm(
-        `Delete record for ${customer.name}?`
-      )
-    ) {
-
-      return;
-
-    }
-
-
-    const deletedName =
-      customer.name;
-
-
-    customers.splice(
-      index,
-      1
-    );
-
-
-    saveToStorage();
-
-
-    addActivity(
-      `Deleted lead - ${deletedName}`
-    );
-
-
-    if (
-      editIndexInput &&
-      parseInt(
-        editIndexInput.value,
-        10
-      ) === index
-    ) {
-
-      resetForm();
-
-    }
-
-
-    renderTable();
-
-  };
-
-
-// ============================================================
-// 18. FOLLOW-UPS
-// ============================================================
-
-function updateFollowUps() {
-
-  if (!followUpList) {
-    return;
-  }
-
-
-  followUpList.innerHTML = "";
-
-
-  const upcoming =
-    customers
-
-      .filter(
-        customer =>
-          customer.followUpDate
-      )
-
-      .sort(
-        (a, b) =>
-          new Date(
-            a.followUpDate
-          ) -
-          new Date(
-            b.followUpDate
-          )
-      )
-
-      .slice(0, 5);
-
-
-  if (upcoming.length === 0) {
-
-    followUpList.innerHTML = `
-
-      <div class="empty-state">
-        No upcoming follow-ups
-      </div>
-
-    `;
-
-    return;
-  }
-
-
-  const today =
-    new Date();
-
-
-  today.setHours(
-    0,
-    0,
-    0,
-    0
-  );
-
-
-  upcoming.forEach(customer => {
-
-    const date =
-      new Date(
-        customer.followUpDate
-      );
-
-
-    date.setHours(
-      0,
-      0,
-      0,
-      0
-    );
-
-
-    let label =
-      date.toLocaleDateString();
-
-
-    if (
-      date.getTime() ===
-      today.getTime()
-    ) {
-
-      label =
-        "Today";
-
-    } else {
-
-      const tomorrow =
-        new Date(today);
-
-
-      tomorrow.setDate(
-        tomorrow.getDate() + 1
-      );
-
-
-      if (
-        date.getTime() ===
-        tomorrow.getTime()
-      ) {
-
-        label =
-          "Tomorrow";
-
-      }
-
-    }
-
-
-    const item =
-      document.createElement(
-        "div"
-      );
-
-
-    item.className =
-      "follow-up-item";
-
-
-    item.innerHTML = `
-
-      <div>
-
-        <strong>
-          ${escapeHTML(
-            customer.name
-          )}
-        </strong>
-
-        <span>
-          ${escapeHTML(
-            customer.company ||
-            "No company"
-          )}
-        </span>
-
-      </div>
-
-
-      <div>
-
-        <strong>
-          ${escapeHTML(label)}
-        </strong>
-
-        <span>
-          ${escapeHTML(
-            customer.status ||
-            "New"
-          )}
-        </span>
-
-      </div>
-
-    `;
-
-
-    followUpList.appendChild(
-      item
-    );
-
-  });
-
-}
-
-
-// ============================================================
-// 19. CSV EXPORT
-// ============================================================
-
-function exportCSV() {
-
-  if (customers.length === 0) {
-
-    alert(
-      "No leads available to export."
-    );
-
-    return;
-
-  }
-
-
-  const headers = [
-
-    "Name",
-
-    "Email",
-
-    "Phone",
-
-    "Company",
-
-    "Status",
-
-    "Priority",
-
-    "Follow-up Date",
-
-    "Notes"
-
-  ];
-
-
-  const rows =
-    customers.map(
-      customer => [
-
-        customer.name || "",
-
-        customer.email || "",
-
-        customer.phone || "",
-
-        customer.company || "",
-
-        customer.status || "",
-
-        customer.priority ||
-          "Medium",
-
-        customer.followUpDate ||
-          "",
-
-        customer.notes || ""
-
-      ]
-    );
-
-
-  const csvContent =
-
-    [headers, ...rows]
-
-      .map(row =>
-
-        row
-
-          .map(
-            value =>
-              `"${String(value)
-                .replace(
-                  /"/g,
-                  '""'
-                )}"`
-          )
-
-          .join(",")
-
-      )
-
-      .join("\n");
-
-
-  const blob =
-    new Blob(
-      [csvContent],
-      {
-        type:
-          "text/csv;charset=utf-8;"
-      }
-    );
-
-
-  const url =
-    URL.createObjectURL(blob);
-
-
-  const link =
-    document.createElement("a");
-
-
-  link.href =
-    url;
-
-
-  link.download =
-    "lead-management-data.csv";
-
-
-  document.body.appendChild(
-    link
-  );
-
-
+function exportReservations() {
+  const headers = ["Booking ID", "Guest", "Phone", "Email", "Room", "Check-in", "Check-out", "Amount", "Status", "Notes"];
+  const quote = value => "${String(value ?? "").replace(/"/g, '""')}";
+  const csv = [
+    headers.map(quote).join(","),
+    ...data.reservations.map(r => [
+      r.id, r.guest, r.phone, r.email, r.room, r.checkin, r.checkout, r.amount, r.status, r.notes
+    ].map(quote).join(","))
+  ].join("\r\n");
+
+  const url = URL.createObjectURL(new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "haven-reservations.csv";
   link.click();
-
-
-  document.body.removeChild(
-    link
-  );
-
-
-  URL.revokeObjectURL(
-    url
-  );
-
-
-  addActivity(
-    "Exported leads to CSV"
-  );
-
+  URL.revokeObjectURL(url);
+  notify("Reservations exported.");
 }
 
+$$(".nav").forEach(button => {
+  button.addEventListener("click", () => showView(button.dataset.view));
+});
 
-if (exportBtn) {
+$$("[data-goto]").forEach(button => {
+  button.addEventListener("click", () => showView(button.dataset.goto));
+});
 
-  exportBtn.addEventListener(
-    "click",
-    exportCSV
+$("#newBooking").addEventListener("click", openBookingDialog);
+$("#newBooking2").addEventListener("click", openBookingDialog);
+$("#closeDialog").addEventListener("click", () => $("#bookingDialog").close());
+$("#bookingForm").addEventListener("submit", createBooking);
+$("#searchBookings").addEventListener("input", renderReservations);
+$("#filterStatus").addEventListener("change", renderReservations);
+$("#exportCsv").addEventListener("click", exportReservations);
+
+$("#menuBtn")?.addEventListener("click", () => $(".sidebar").classList.toggle("open"));
+
+document.addEventListener("click", event => {
+  const actionButton = event.target.closest("[data-action]");
+  if (actionButton) {
+    updateReservation(actionButton.dataset.id, actionButton.dataset.action);
+  }
+});
+
+document.addEventListener("change", event => {
+  const select = event.target.closest("select[data-room]");
+  if (!select) return;
+
+  const room = data.rooms.find(r => r.number === select.dataset.room);
+  if (!room) return;
+
+  const activeBooking = data.reservations.some(r =>
+    r.room === room.number && r.status === "Checked In"
   );
 
-}
-
-
-// ============================================================
-// 20. DARK MODE
-// ============================================================
-
-function loadTheme() {
-
-  const savedTheme =
-    localStorage.getItem(
-      "theme"
-    );
-
-
-  if (
-    savedTheme === "dark"
-  ) {
-
-    document.body.classList.add(
-      "dark-mode"
-    );
-
-
-    if (themeToggle) {
-
-      themeToggle.textContent =
-        "Light Mode";
-
-    }
-
+  if (activeBooking && select.value !== "Occupied") {
+    notify("Check out the guest before changing this room's status.");
+    renderAll();
+    return;
   }
 
-}
+  room.status = select.value;
+  saveData();
+  renderAll();
+  notify(Room ${room.number} updated.);
+});
 
+$("#bookingForm").elements.checkin.addEventListener("change", () => {
+  const checkin = $("#bookingForm").elements.checkin.value;
+  const checkout = $("#bookingForm").elements.checkout;
+  if (checkout.value <= checkin) {
+    const next = new Date(checkin + "T12:00:00");
+    next.setDate(next.getDate() + 1);
+    checkout.value = ${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}-${String(next.getDate()).padStart(2, "0")};
+  }
+});
 
-if (themeToggle) {
+$("#todayLabel")?.replaceChildren(document.createTextNode(
+  new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+));
 
-  themeToggle.addEventListener(
-    "click",
-    function () {
-
-      document.body.classList.toggle(
-        "dark-mode"
-      );
-
-
-      const dark =
-        document.body.classList.contains(
-          "dark-mode"
-        );
-
-
-      localStorage.setItem(
-        "theme",
-        dark
-          ? "dark"
-          : "light"
-      );
-
-
-      themeToggle.textContent =
-        dark
-          ? "Light Mode"
-          : "Dark Mode";
-
-
-      // Re-render charts so
-      // their labels/background
-      // match the current theme.
-
-      updateCharts();
-
-    }
-  );
-
-}
-
-
-// ============================================================
-// 21. FILTERS
-// ============================================================
-
-if (searchInput) {
-
-  searchInput.addEventListener(
-    "input",
-    renderTable
-  );
-
-}
-
-
-if (filterStatus) {
-
-  filterStatus.addEventListener(
-    "change",
-    renderTable
-  );
-
-}
-
-
-if (filterPriority) {
-
-  filterPriority.addEventListener(
-    "change",
-    renderTable
-  );
-
-}
-
-
-// ============================================================
-// 22. INITIAL LOAD
-// ============================================================
-
-loadTheme();
-
-renderTable();
-
-updateActivity();
-
-updateFollowUps();
+renderAll();
