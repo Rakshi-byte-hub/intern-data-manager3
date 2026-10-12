@@ -3,138 +3,251 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Haven | Hotel Front Desk</title>
+  <meta name="theme-color" content="#f3f4fb">
+  <title>Haven | Hotel Management</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
   <aside class="sidebar">
     <h2>HAVEN <small>HOTEL MANAGEMENT</small></h2>
     <nav>
-      <button data-view="dashboard" class="nav active">Overview</button>
-      <button data-view="reservations" class="nav">Reservations</button>
-      <button data-view="rooms" class="nav">Room Management</button>
-      <button data-view="guests" class="nav">Guests</button>
-      <button data-view="housekeeping" class="nav">Housekeeping</button>
+      <button type="button" data-view="dashboard" class="nav active">Overview</button>
+      <button type="button" data-view="reservations" class="nav">Reservations</button>
+      <button type="button" data-view="rooms" class="nav">Room Management</button>
+      <button type="button" data-view="guests" class="nav">Guests</button>
+      <button type="button" data-view="housekeeping" class="nav">Housekeeping</button>
     </nav>
     <p class="side-footer">Front Desk · Administrator</p>
   </aside>
 
   <main class="main">
     <header class="topbar">
+      <button type="button" class="mobile-menu" id="menuBtn" aria-label="Open menu">☰</button>
       <div>
         <p class="muted">HAVEN BOUTIQUE HOTEL</p>
         <h1 id="pageTitle">Overview</h1>
       </div>
-      <button class="primary" id="newBooking">+ New reservation</button>
+      <button type="button" class="primary" id="newBooking">+ New reservation</button>
     </header>
 
+    <!-- DASHBOARD -->
     <section class="view active" id="dashboard">
       <h2>Good evening, Manager</h2>
       <p class="muted">Here's what's happening at your property today.</p>
 
       <div class="stats">
-        <article class="card"><p>Occupancy</p><h2 id="occupancy">0%</h2><span>Rooms occupied</span></article>
-        <article class="card"><p>Arrivals</p><h2 id="arrivals">0</h2><span>Expected guests</span></article>
-        <article class="card"><p>Departures</p><h2 id="departures">0</h2><span>Today's departures</span></article>
-        <article class="card"><p>Today's revenue</p><h2 id="revenue">₹0</h2><span>From reservations</span></article>
+        <article class="card">
+          <p>Occupancy</p>
+          <h2 id="occupancy">0%</h2>
+          <span>Rooms occupied</span>
+        </article>
+        <article class="card">
+          <p>Arrivals today</p>
+          <h2 id="arrivals">0</h2>
+          <span>Expected guests</span>
+        </article>
+        <article class="card">
+          <p>Departures today</p>
+          <h2 id="departures">0</h2>
+          <span>Today's departures</span>
+        </article>
+        <article class="card">
+          <p>Today's revenue</p>
+          <h2 id="revenue">₹0</h2>
+          <span>From reservations</span>
+        </article>
       </div>
 
       <section class="card">
         <div class="section-heading">
-          <div><h2>Today's reservations</h2><p class="muted">Manage guest check-ins and check-outs</p></div>
-          <button class="secondary" data-goto="reservations">View all</button>
+          <div>
+            <h2>Today's reservations</h2>
+            <p class="muted">Manage guest check-ins and check-outs.</p>
+          </div>
+          <button type="button" class="secondary" data-goto="reservations">View all</button>
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Booking</th><th>Guest</th><th>Room</th><th>Check-in</th><th>Check-out</th><th>Status</th><th>Action</th></tr></thead>
+            <thead>
+              <tr>
+                <th>BOOKING</th>
+                <th>GUEST</th>
+                <th>ROOM</th>
+                <th>CHECK-IN</th>
+                <th>CHECK-OUT</th>
+                <th>STATUS</th>
+                <th>ACTION</th>
+              </tr>
+            </thead>
             <tbody id="dashboardTable"></tbody>
           </table>
         </div>
       </section>
 
       <section class="card">
-        <div class="section-heading"><div><h2>Room availability</h2><p class="muted">Current room status</p></div></div>
+        <div class="section-heading">
+          <div>
+            <h2>Room availability</h2>
+            <p class="muted">Current room status.</p>
+          </div>
+        </div>
         <div id="roomSummary" class="room-summary"></div>
       </section>
     </section>
 
+    <!-- RESERVATIONS -->
     <section class="view" id="reservations">
       <section class="card">
         <div class="section-heading">
-          <div><h2>All reservations</h2><p class="muted">Bookings and guest stay details</p></div>
-          <button class="primary" id="newBooking2">+ Add booking</button>
+          <div>
+            <h2>All reservations</h2>
+            <p class="muted">Manage your bookings and guest details.</p>
+          </div>
+          <button type="button" class="primary" id="newBooking2">+ Add booking</button>
         </div>
+
         <div class="toolbar">
-          <input id="searchBookings" placeholder="Search guest, room or booking ID">
+          <input id="searchBookings" type="search" placeholder="Search guest, room or booking ID">
           <select id="filterStatus">
             <option value="">All statuses</option>
-            <option>Confirmed</option><option>Checked In</option>
-            <option>Checked Out</option><option>Cancelled</option>
+            <option>Confirmed</option>
+            <option>Checked In</option>
+            <option>Checked Out</option>
+            <option>Cancelled</option>
           </select>
         </div>
+
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Booking</th><th>Guest</th><th>Phone</th><th>Room</th><th>Dates</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
+            <thead>
+              <tr>
+                <th>BOOKING ID</th>
+                <th>GUEST</th>
+                <th>PHONE</th>
+                <th>ROOM</th>
+                <th>DATES</th>
+                <th>AMOUNT</th>
+                <th>STATUS</th>
+                <th>ACTION</th>
+              </tr>
+            </thead>
             <tbody id="reservationsTable"></tbody>
           </table>
         </div>
-        <button class="secondary" id="exportCsv">Export CSV</button>
+
+        <button type="button" class="export-btn" id="exportCsv">Export CSV</button>
       </section>
     </section>
 
+    <!-- ROOM MANAGEMENT -->
     <section class="view" id="rooms">
-      <div class="section-heading"><div><h2>Room management</h2><p class="muted">View and update room availability</p></div></div>
+      <div class="section-heading">
+        <div>
+          <h2>Room management</h2>
+          <p class="muted">Manage room availability and status.</p>
+        </div>
+      </div>
       <div id="roomGrid" class="room-grid"></div>
     </section>
 
+    <!-- GUESTS -->
     <section class="view" id="guests">
       <section class="card">
         <h2>Guest directory</h2>
-        <p class="muted">Guest information from your reservations</p>
+        <p class="muted">Guest details from your reservations.</p>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Guest</th><th>Phone</th><th>Email</th><th>Bookings</th></tr></thead>
+            <thead>
+              <tr>
+                <th>GUEST</th>
+                <th>PHONE</th>
+                <th>EMAIL</th>
+                <th>BOOKINGS</th>
+              </tr>
+            </thead>
             <tbody id="guestsTable"></tbody>
           </table>
         </div>
       </section>
     </section>
 
+    <!-- HOUSEKEEPING -->
     <section class="view" id="housekeeping">
       <section class="card">
         <h2>Housekeeping</h2>
-        <p class="muted">Update cleaning and room readiness status.</p>
+        <p class="muted">Update cleaning and room readiness.</p>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Room</th><th>Type</th><th>Status</th><th>Update status</th></tr></thead>
+            <thead>
+              <tr>
+                <th>ROOM</th>
+                <th>TYPE</th>
+                <th>STATUS</th>
+                <th>UPDATE STATUS</th>
+              </tr>
+            </thead>
             <tbody id="housekeepingTable"></tbody>
           </table>
         </div>
       </section>
     </section>
+
   </main>
 
+  <!-- NEW RESERVATION POPUP -->
   <dialog id="bookingDialog">
     <form id="bookingForm">
       <div class="section-heading">
-        <h2>New reservation</h2>
-        <button type="button" class="close-btn" id="closeDialog">✕</button>
+        <div>
+          <h2>New reservation</h2>
+          <p class="muted">Enter the guest and stay details.</p>
+        </div>
+        <button type="button" id="closeDialog" class="close-btn" aria-label="Close form">✕</button>
       </div>
-      <label>Guest name<input name="guest" required placeholder="Full name"></label>
-      <label>Phone number<input name="phone" required type="tel" placeholder="Phone number"></label>
-      <label>Email<input name="email" type="email" placeholder="Email address"></label>
-      <label>Room<select name="room" id="bookingRoom" required></select></label>
+
+      <label>Guest name
+        <input name="guest" type="text" required placeholder="Enter full name">
+      </label>
+
+      <label>Phone number
+        <input name="phone" type="tel" required placeholder="Enter phone number">
+      </label>
+
+      <label>Email address
+        <input name="email" type="email" placeholder="Enter email address">
+      </label>
+
+      <label>Room
+        <select name="room" id="bookingRoom" required>
+          <option value="">Select an available room</option>
+        </select>
+      </label>
+
       <div class="form-grid">
-        <label>Check-in<input name="checkin" type="date" required></label>
-        <label>Check-out<input name="checkout" type="date" required></label>
+        <label>Check-in
+          <input name="checkin" type="date" required>
+        </label>
+        <label>Check-out
+          <input name="checkout" type="date" required>
+        </label>
       </div>
-      <label>Amount (₹)<input name="amount" type="number" min="0" required placeholder="Total booking amount"></label>
-      <label>Notes<textarea name="notes" placeholder="Special requests"></textarea></label>
-      <button class="primary full" type="submit">Create reservation</button>
+
+      <label>Total amount (₹)
+        <input name="amount" type="number" min="0" required placeholder="Enter booking amount">
+      </label>
+
+      <label>Special requests
+        <textarea name="notes" placeholder="Additional guest requirements"></textarea>
+      </label>
+
+      <button type="submit" class="primary full">Create reservation</button>
     </form>
   </dialog>
 
-  <div id="toast" class="toast"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- Keep this script at the end of the body -->
   <script src="script.js"></script>
 </body>
 </html>
