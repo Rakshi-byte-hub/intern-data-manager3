@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }).format(Number(amount) || 0);
 
   const formatDate = (value) => {
-    if (!value) return "—";
+    if (!value) return "";
     return new Date(value + "T12:00:00").toLocaleDateString("en-IN", {
       day: "2-digit",
       month: "short",
@@ -60,8 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed.rooms) &&
-            Array.isArray(parsed.reservations)) {
+        if (Array.isArray(parsed.rooms) && Array.isArray(parsed.reservations)) {
           return parsed;
         }
       }
@@ -72,7 +71,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   let data = loadData();
-
   if (!Array.isArray(data.rooms)) data.rooms = [];
   if (!Array.isArray(data.reservations)) data.reservations = [];
 
@@ -91,7 +89,6 @@ document.addEventListener("DOMContentLoaded", () => {
       alert(message);
       return;
     }
-
     element.textContent = message;
     element.classList.add("show");
     clearTimeout(toast.timer);
@@ -111,7 +108,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // NAVIGATION
   function navigate(viewId) {
     const view = document.getElementById(viewId);
-
     if (!view || !view.classList.contains("view")) {
       console.warn("Navigation view not found:", viewId);
       return;
@@ -135,7 +131,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const title = $("#pageTitle");
     if (title) title.textContent = titles[viewId] || "Overview";
-
     $(".sidebar")?.classList.remove("open");
   }
 
@@ -165,7 +160,6 @@ document.addEventListener("DOMContentLoaded", () => {
         String(booking.room) !== String(roomNumber) ||
         ["Cancelled", "Checked Out"].includes(booking.status)
       ) return false;
-
       return checkin < booking.checkout && checkout > booking.checkin;
     });
   }
@@ -177,8 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const checkout = form.elements.namedItem("checkout").value;
     const previous = roomSelect.value;
 
-    roomSelect.innerHTML =
-      '<option value="">Select an available room</option>';
+    roomSelect.innerHTML = '<option value="">Select an available room</option>';
 
     data.rooms.forEach((room) => {
       const available = checkin && checkout && checkout > checkin
@@ -188,7 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (available) {
         const option = document.createElement("option");
         option.value = room.number;
-        option.textContent = Room ${room.number} — ${room.type};
+        option.textContent = `Room ${room.number} - ${room.type}`;
         roomSelect.appendChild(option);
       }
     });
@@ -237,7 +230,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     checkout.min = addDays(checkin, 1);
     if (checkout.value <= checkin) checkout.value = addDays(checkin, 1);
-
     updateRoomOptions();
   });
 
@@ -246,8 +238,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // CREATE RESERVATION
   form?.addEventListener("submit", (event) => {
     event.preventDefault();
-
     const values = new FormData(form);
+
     const guest = String(values.get("guest") || "").trim();
     const phone = String(values.get("phone") || "").trim();
     const email = String(values.get("email") || "").trim();
@@ -302,7 +294,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (dialog?.close) dialog.close();
     else dialog?.removeAttribute("open");
-
     toast("Reservation created successfully.");
   });
 
@@ -336,7 +327,7 @@ document.addEventListener("DOMContentLoaded", () => {
     booking.status = "Checked Out";
     const room = roomFor(booking.room);
     if (room) room.status = "Cleaning";
-
+    
     saveData();
     renderAll();
     toast("Guest checked out. Room sent for cleaning.");
@@ -364,7 +355,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function badge(status) {
     const safe = escapeHTML(status || "Unknown");
     const className = safe.toLowerCase().replace(/\s+/g, "-");
-    return <span class="status ${className}">${safe}</span>;
+    return `<span class="status ${className}">${safe}</span>`;
   }
 
   function actions(booking) {
@@ -375,21 +366,18 @@ document.addEventListener("DOMContentLoaded", () => {
         <button type="button" class="small-btn danger"
           data-action="cancel" data-id="${escapeHTML(booking.id)}">Cancel</button>`;
     }
-
     if (booking.status === "Checked In") {
       return `<button type="button" class="small-btn"
         data-action="checkout" data-id="${escapeHTML(booking.id)}">Check out</button>`;
     }
-
-    return "—";
+    return "";
   }
 
   // DASHBOARD
   function renderDashboard() {
     const occupied = data.rooms.filter((room) => room.status === "Occupied").length;
-
     $("#occupancy").textContent = data.rooms.length
-      ? Math.round(occupied / data.rooms.length * 100) + "%"
+      ? Math.round((occupied / data.rooms.length) * 100) + "%"
       : "0%";
 
     $("#arrivals").textContent = data.reservations.filter(
@@ -406,7 +394,6 @@ document.addEventListener("DOMContentLoaded", () => {
         ["Confirmed", "Checked In", "Checked Out"].includes(booking.status)
       )
       .reduce((sum, booking) => sum + (Number(booking.amount) || 0), 0);
-
     $("#revenue").textContent = money(revenue);
 
     const bookings = data.reservations.filter((booking) =>
@@ -448,7 +435,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const text = [
         booking.id, booking.guest, booking.phone, booking.email, booking.room
       ].join(" ").toLowerCase();
-
       return text.includes(search) && (!filter || booking.status === filter);
     });
 
@@ -486,7 +472,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     data.reservations.forEach((booking) => {
       const key = booking.phone || booking.email || booking.guest;
-
       if (!guests.has(key)) {
         guests.set(key, {
           guest: booking.guest,
@@ -495,7 +480,6 @@ document.addEventListener("DOMContentLoaded", () => {
           bookings: 0
         });
       }
-
       guests.get(key).bookings++;
     });
 
@@ -505,8 +489,8 @@ document.addEventListener("DOMContentLoaded", () => {
       ? list.map((guest) => `
         <tr>
           <td>${escapeHTML(guest.guest)}</td>
-          <td>${escapeHTML(guest.phone || "—")}</td>
-          <td>${escapeHTML(guest.email || "—")}</td>
+          <td>${escapeHTML(guest.phone || "-")}</td>
+          <td>${escapeHTML(guest.email || "-")}</td>
           <td>${guest.bookings}</td>
         </tr>`).join("")
       : '<tr><td colspan="4">No guest records yet.</td></tr>';
@@ -569,7 +553,8 @@ document.addEventListener("DOMContentLoaded", () => {
       ["Status", "status"], ["Notes", "notes"]
     ];
 
-    const cell = (value) => "${String(value ?? "").replace(/"/g, '""')}";
+    const cell = (value) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+
     const csv = [
       fields.map(([label]) => cell(label)).join(","),
       ...data.reservations.map((booking) =>
@@ -602,6 +587,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
   saveData();
   renderAll();
-
-  console.log("Haven Hotel Management loaded successfully.");
 });
